@@ -1,0 +1,859 @@
+<h2 class="sr-only">Quiz total de Fundamentos de Enfermagem com mais de 300 perguntas, organizadas por sub-tema</h2>
+
+<style>
+  .quiz-wrap { padding: 1rem 0; font-family: var(--font-sans); }
+  .top-bar { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; position: sticky; top: 0; z-index: 5; }
+  .stats { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .stat-block { display: flex; flex-direction: column; }
+  .stat-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
+  .stat-num { font-size: 19px; font-weight: 500; color: var(--color-text-primary); }
+  .progress-bar { height: 4px; background: rgba(0,0,0,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--color-text-info); transition: width 0.3s ease; width: 0%; }
+  .filters { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  .filter-btn { padding: 4px 9px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary); background: transparent; border-radius: var(--border-radius-md); cursor: pointer; font-family: var(--font-sans); color: var(--color-text-primary); transition: all 0.15s; }
+  .filter-btn:hover { background: var(--color-background-secondary); }
+  .filter-btn.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+  .ctrl-btn { padding: 4px 9px; font-size: 11px; border: 0.5px solid var(--color-border-secondary); background: transparent; border-radius: var(--border-radius-md); cursor: pointer; font-family: var(--font-sans); color: var(--color-text-primary); }
+  .ctrl-btn:hover { background: var(--color-background-secondary); }
+  .ctrl-btn.active { background: var(--color-text-primary); color: var(--color-background-primary); }
+  .section-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 1.5rem 0 0.5rem; padding: 0 0.5rem; }
+  .q-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 0.95rem 1.1rem; margin-bottom: 0.65rem; }
+  .q-header { display: flex; gap: 5px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  .q-tag { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: var(--border-radius-md); letter-spacing: 0.3px; text-transform: uppercase; }
+  .tag-mc { background: var(--color-background-info); color: var(--color-text-info); }
+  .tag-dev { background: #EEEDFE; color: #3C3489; }
+  .tag-case { background: #FAEEDA; color: #633806; }
+  .tag-tf { background: #DDF1E0; color: #173404; }
+  .tag-theme { background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 10px; padding: 2px 7px; border-radius: var(--border-radius-md); }
+  .tag-sub { background: transparent; color: var(--color-text-tertiary); font-size: 10px; padding: 2px 4px; }
+  .q-text { font-size: 14px; font-weight: 500; line-height: 1.5; margin: 0 0 10px; color: var(--color-text-primary); }
+  .opt { display: block; width: 100%; text-align: left; padding: 8px 11px; margin: 4px 0; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: transparent; font-size: 13px; font-family: var(--font-sans); cursor: pointer; transition: all 0.15s; color: var(--color-text-primary); line-height: 1.4; }
+  .opt:hover:not(:disabled) { background: var(--color-background-secondary); border-color: var(--color-border-secondary); }
+  .opt.correct { background: #EAF3DE; border-color: #639922; color: #173404; }
+  .opt.wrong { background: #FCEBEB; border-color: #A32D2D; color: #501313; }
+  .opt:disabled { cursor: default; }
+  .feedback { margin-top: 8px; padding: 8px 11px; border-radius: var(--border-radius-md); font-size: 12px; line-height: 1.5; display: none; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #EAF3DE; color: #173404; }
+  .feedback.no { background: #FCEBEB; color: #501313; }
+  .dev-toggle { background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--color-text-primary); font-family: var(--font-sans); }
+  .dev-toggle:hover { background: var(--color-background-secondary); }
+  .dev-answer { display: none; margin-top: 8px; padding: 11px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 12px; line-height: 1.6; color: var(--color-text-primary); }
+  .dev-answer.show { display: block; }
+  .dev-answer ul { margin: 4px 0 0; padding-left: 18px; }
+  .dev-answer li { margin: 3px 0; }
+  .dev-textarea { width: 100%; min-height: 60px; padding: 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); font-family: var(--font-sans); font-size: 12.5px; resize: vertical; background: var(--color-background-primary); color: var(--color-text-primary); margin-bottom: 6px; box-sizing: border-box; }
+  .empty { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 13px; }
+  .case-context { background: #FAEEDA; padding: 9px 12px; border-radius: var(--border-radius-md); font-size: 12.5px; line-height: 1.5; color: #412402; margin: 6px 0 9px; font-style: italic; border-left: 2px solid #BA7517; }
+</style>
+
+<div class="quiz-wrap">
+  <div class="top-bar">
+    <div class="stats">
+      <div class="stat-block">
+        <span class="stat-label">Acertos</span>
+        <span class="stat-num"><span id="score">0</span> / <span id="total">0</span></span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Respondidas</span>
+        <span class="stat-num"><span id="answered">0</span></span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Taxa de acerto</span>
+        <span class="stat-num"><span id="rate">—</span></span>
+      </div>
+      <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+        <button class="ctrl-btn" onclick="toggleErrorMode()" id="errBtn"><i class="ti ti-alert-circle" aria-hidden="true"></i> Só erradas</button>
+        <button class="ctrl-btn" onclick="toggleSections()" id="secBtn"><i class="ti ti-layout-list" aria-hidden="true"></i> Secções</button>
+        <button class="ctrl-btn" onclick="resetAll()"><i class="ti ti-refresh" aria-hidden="true"></i> Reiniciar</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div id="questions"></div>
+</div>
+
+<script>
+const themes = {
+  sv: "SV (geral)",
+  temp: "Temperatura",
+  pulso: "Pulso",
+  resp: "Respiração",
+  ta: "Tensão arterial",
+  dor: "Dor",
+  glic: "Glicemia",
+  hig: "Higiene",
+  proc: "Processo enfermagem",
+  sng: "SNG",
+  alim: "Alimentação entérica",
+  lav: "Lavagem gástrica"
+};
+
+// type: mc | dev | tf | case
+// theme + sub para sub-secções
+const Q = [];
+function add(o) { Q.push(o); }
+
+// ============================================================
+// 1. SINAIS VITAIS GERAL
+// ============================================================
+add({type:"mc",theme:"sv",sub:"Definição",q:"Os sinais vitais são, segundo o documento:",opts:["Um modo eficiente e rápido de monitorizar a condição do utente, identificar problemas e avaliar resposta a intervenções","Apenas indicadores administrativos","Um teste laboratorial","Apenas usados em emergência"],correct:0,fb:"Modo eficiente e rápido de monitorizar, identificar problemas e avaliar resposta."});
+add({type:"mc",theme:"sv",sub:"Definição",q:"O ciclo circadiano:",opts:["É igual em todos","Faz os SV variarem entre pessoas e ao longo do dia no mesmo indivíduo","Não influencia os SV","Apenas afeta a temperatura"],correct:1,fb:"Cada indivíduo tem o seu ciclo, gerando variação inter e intra-individual."});
+add({type:"mc",theme:"sv",sub:"Definição",q:"Uma alteração dos SV:",opts:["É sempre fisiológica","Solicita necessidade de intervenção médica ou de enfermagem","Não tem importância clínica","Resolve-se sem ação"],correct:1,fb:"Solicita intervenção médica ou de enfermagem."});
+add({type:"mc",theme:"sv",sub:"Avaliação",q:"A avaliação dos SV:",opts:["Substitui o exame físico","É a primeira parte do exame físico","É a última parte","É independente do exame físico"],correct:1,fb:"Primeira parte do exame físico."});
+add({type:"mc",theme:"sv",sub:"Avaliação",q:"O registo dos SV:",opts:["Apenas administrativo","Dá informação importante e serve como base de referência para medidas subsequentes","Não tem utilidade clínica","Apenas para faturação"],correct:1,fb:"Informação importante e base de referência."});
+add({type:"mc",theme:"sv",sub:"Observações importantes",q:"Sobre o equipamento dos SV:",opts:["Qualquer um serve","Funcional e apropriado à idade e tamanho do utente","Apenas o tamanho importa","Apenas a marca importa"],correct:1,fb:"Funcional E apropriado à idade e tamanho."});
+add({type:"mc",theme:"sv",sub:"Observações importantes",q:"Os fatores ambientais:",opts:["Não afetam os SV","Devem ser controlados ou minimizados antes da avaliação","Apenas relevantes em UCI","Sem importância"],correct:1,fb:"Controlar ou minimizar fatores ambientais."});
+add({type:"mc",theme:"sv",sub:"Observações importantes",q:"Por que é importante saber os valores de referência do utente?",opts:["Para detetar variações relativas ao seu padrão","Apenas para registo","Não é importante","Apenas em estudo"],correct:0,fb:"Permite individualizar e detetar desvios."});
+add({type:"mc",theme:"sv",sub:"Quando avaliar",q:"Em qual destas situações se avalia SV?",opts:["Apenas na admissão","Apenas em pós-operatório","Antes/durante/após transfusão de produtos sanguíneos","Apenas se o utente pedir"],correct:2,fb:"Antes, durante e após transfusão."});
+add({type:"mc",theme:"sv",sub:"Quando avaliar",q:"Os SV avaliam-se também:",opts:["Apenas quando há queixas","Antes e depois de procedimento cirúrgico ou diagnóstico invasivo","Apenas em UCI","Apenas em pediatria"],correct:1,fb:"Antes/depois de procedimento cirúrgico ou diagnóstico invasivo."});
+add({type:"mc",theme:"sv",sub:"Quando avaliar",q:"Quando o utente refere sintomas indeterminados:",opts:["Aguardar antes de avaliar","Avaliar SV","Pedir exames","Ignorar"],correct:1,fb:"Sintomas indeterminados de perturbação física → avaliar SV."});
+add({type:"mc",theme:"sv",sub:"Quando avaliar",q:"Antes E após intervenções de enfermagem:",opts:["Não é necessário avaliar SV","Que tenham influência num dos SV, deve avaliar-se","Apenas se for cirurgia","Apenas se for transfusão"],correct:1,fb:"Avaliar antes/após intervenções que influenciem um SV."});
+add({type:"mc",theme:"sv",sub:"Registo gráfico",q:"Cor PRETA no registo:",opts:["Pulso","Temperatura","Respiração","TA"],correct:2,fb:"Preto = respiração."});
+add({type:"mc",theme:"sv",sub:"Registo gráfico",q:"Cor VERMELHA:",opts:["Temperatura","Pulso","Respiração","Dor"],correct:1,fb:"Vermelho = pulso."});
+add({type:"mc",theme:"sv",sub:"Registo gráfico",q:"Cor AZUL:",opts:["Pulso","Temperatura","Respiração","TA"],correct:1,fb:"Azul = temperatura."});
+add({type:"mc",theme:"sv",sub:"Registo gráfico",q:"Cor VERDE:",opts:["Pulso","Temperatura","Respiração","Tensão arterial"],correct:3,fb:"Verde = TA."});
+add({type:"mc",theme:"sv",sub:"Registo gráfico",q:"Cor ROSA / azul:",opts:["Pulso","Dor","Temperatura","Respiração"],correct:1,fb:"Rosa/azul = dor."});
+add({type:"mc",theme:"sv",sub:"5 sinais",q:"Os cinco sinais vitais são:",opts:["Temperatura, pulso, respiração, TA, glicemia","Temperatura, pulso, respiração, TA, dor","Temperatura, pulso, respiração, TA, peso","Pulso, respiração, TA, dor, saturação"],correct:1,fb:"Temperatura, pulso, respiração, TA, dor."});
+
+// ============================================================
+// 2. TEMPERATURA
+// ============================================================
+add({type:"mc",theme:"temp",sub:"Definição",q:"A temperatura corporal corresponde a:",opts:["Calor exterior","Calor interno do corpo, relacionado com o metabolismo corporal","Pressão hidrostática","Volume sanguíneo"],correct:1,fb:"Calor interno, relacionado com o metabolismo."});
+add({type:"mc",theme:"temp",sub:"Regulação",q:"A temperatura é regulada por:",opts:["Apenas hipotálamo","Hipotálamo (anterior+posterior) e tiroide","Apenas tiroide","Hipófise e adrenais"],correct:1,fb:"Hipotálamo (anterior=perda; posterior=produção) + tiroide."});
+add({type:"mc",theme:"temp",sub:"Regulação",q:"O hipotálamo ANTERIOR:",opts:["Produção de calor","Perda de calor","Regula pulso","Regula glicemia"],correct:1,fb:"Anterior = perda."});
+add({type:"mc",theme:"temp",sub:"Regulação",q:"O hipotálamo POSTERIOR:",opts:["Perda de calor","Produção de calor","Regula respiração","Regula TA"],correct:1,fb:"Posterior = produção."});
+add({type:"mc",theme:"temp",sub:"Valores",q:"Temperatura corporal normal:",opts:["35º-36º","36º-37,4º","37,5º-38,5º","38º-39º"],correct:1,fb:"36º-37,4º, dependendo do local."});
+add({type:"mc",theme:"temp",sub:"Valores",q:"O valor varia conforme:",opts:["Apenas como é monitorizada","Como E onde é monitorizada","Apenas onde","Apenas a hora"],correct:1,fb:"Como (técnica) e onde (local)."});
+add({type:"mc",theme:"temp",sub:"Risco extremos",q:"Em criança e idoso, temperatura ambiental que pode causar morte:",opts:["< 5º ou > 40º","< 10º ou > 35º","< 15º ou > 30º","< 20º ou > 25º"],correct:0,fb:"< 5º ou > 40º."});
+add({type:"mc",theme:"temp",sub:"Variação",q:"A temperatura varia com:",opts:["Apenas idade","Idade, sexo, ritmo circadiano, atividade física, hormonas, stress, hidratação, estado de saúde, meio","Apenas sexo","Apenas idade e hidratação"],correct:1,fb:"Múltiplos fatores listados."});
+add({type:"mc",theme:"temp",sub:"Alterações",q:"A temperatura sofre alterações em:",opts:["Apenas infeções","Doenças metabólicas, infeções graves, EAM ou após cirurgias","Apenas pós-cirurgia","Apenas EAM"],correct:1,fb:"Doenças metabólicas, infeções graves, EAM, pós-cirurgia."});
+add({type:"mc",theme:"temp",sub:"Hipotermia",q:"Sinais de hipotermia incluem:",opts:["Pele quente e seca","Pele fria, pálida e seca, tremores, taquicardia, hipertensão, leitos ungueais cianosados, piloereção","Hipotensão e bradicardia","Sudorese profusa"],correct:1,fb:"Hipotermia: pele fria/pálida/seca + tremores + taquicardia + hipertensão + cianose ungueal + piloereção."});
+add({type:"mc",theme:"temp",sub:"Hipotermia",q:"A hipotermia pode estar associada a:",opts:["Cirurgia","Exposição prolongada ao frio, disfunção do SNC ou endócrino, ou indução terapêutica","Refeições copiosas","Atividade física"],correct:1,fb:"Frio prolongado, disfunção SNC/endócrino, indução terapêutica."});
+add({type:"mc",theme:"temp",sub:"Hipotermia",q:"O preenchimento capilar na hipotermia é:",opts:["Rápido","Lento","Normal","Inexistente"],correct:1,fb:"Preenchimento capilar lento na hipotermia."});
+add({type:"mc",theme:"temp",sub:"Hipertermia",q:"Sinais de hipertermia:",opts:["Pele fria, tremores","Pele quente e seca, sonolência, cefaleia","Cianose, hipotensão","Tremores e calafrios"],correct:1,fb:"Pele quente e seca, sonolência, cefaleia."});
+add({type:"mc",theme:"temp",sub:"Hipertermia",q:"A hipertermia associa-se a:",opts:["Apenas frio","Disfunção SNC/endócrino, choque pelo calor ou indução terapêutica","Apenas exercício","Apenas medicamentos"],correct:1,fb:"Disfunção SNC/endócrino, choque pelo calor, indução terapêutica."});
+add({type:"mc",theme:"temp",sub:"Monitorização",q:"Local PREFERENCIAL de monitorização:",opts:["Axilar","Retal","Timpânico","Oral"],correct:2,fb:"Preferencialmente timpânico; alternativas: axilar, retal, oral."});
+add({type:"mc",theme:"temp",sub:"Locais",q:"Locais CENTRAIS de medição:",opts:["Axila, oral, inguinal","Reto, tímpano, esófago, artéria pulmonar, bexiga","Apenas axila","Apenas oral"],correct:1,fb:"Centrais: reto, tímpano, esófago, artéria pulmonar, bexiga."});
+add({type:"mc",theme:"temp",sub:"Locais",q:"Locais SUPERFICIAIS de medição:",opts:["Reto, tímpano, esófago","Pele, axilas, região inguinal, cavidade oral","Artéria pulmonar","Bexiga"],correct:1,fb:"Superficiais: pele, axilas, inguinal, oral."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"Os termómetros de mercúrio:",opts:["São preferenciais","Não devem ser utilizados — substituídos por Galinstan","Apenas em pediatria","São equivalentes aos eletrónicos"],correct:1,fb:"Substituídos por Galinstan (gálio, índio, estanho)."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"O Galinstan é composto por:",opts:["Gálio, índio, estanho","Gálio e mercúrio","Índio e zinco","Mercúrio e estanho"],correct:0,fb:"Gálio + Índio + Estanho = Galinstan."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"Termómetro para anestesia geral, hipotermia/hipertermia (monitorização contínua):",opts:["Tira plástica","Eletrónico intermitente","Eletrónico contínuo","Infravermelhos"],correct:2,fb:"Eletrónico contínuo."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"Termómetros eletrónicos intermitentes:",opts:["~5s","~15s","~60s, oral/retal/axilar","~5min"],correct:2,fb:"~60s, em oral, retal e axilar."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"Tira plástica:",opts:["Hospitalar","Muda de cor consoante temperatura, ~15s, uso doméstico em crianças","Apenas UCI","Apenas anestesia"],correct:1,fb:"Muda de cor em ~15s, doméstico (crianças)."});
+add({type:"mc",theme:"temp",sub:"Termómetros",q:"Termómetros de infravermelhos:",opts:["Contacto direto","Recebem radiação térmica de um local específico","Aplicam calor","Medem humidade"],correct:1,fb:"Recebem radiação térmica."});
+add({type:"mc",theme:"temp",sub:"Cuidados",q:"Antes de monitorizar a temperatura:",opts:["Improvisar","Consultar processo do utente para individualizar cuidados","Não consultar","Apenas registar"],correct:1,fb:"Consultar processo para individualizar."});
+add({type:"tf",theme:"temp",sub:"Conceitos",q:"Verdadeiro ou falso: a hipotermia inclui hipertensão e taquicardia.",opts:["Verdadeiro","Falso"],correct:0,fb:"Verdadeiro: hipertensão E taquicardia (resposta compensatória)."});
+add({type:"tf",theme:"temp",sub:"Conceitos",q:"Verdadeiro ou falso: o hipotálamo anterior produz calor.",opts:["Verdadeiro","Falso"],correct:1,fb:"Falso: anterior=perda; posterior=produção."});
+
+// ============================================================
+// 3. PULSO
+// ============================================================
+add({type:"mc",theme:"pulso",sub:"Definição",q:"Pulso define-se como:",opts:["Pressão diastólica","Choque da onda sistólica na parede da artéria, sentido pelos dedos comprimindo a artéria sobre saliência óssea","Pressão venosa","Frequência cardíaca apenas"],correct:1,fb:"Choque da onda sistólica sobre saliência óssea."});
+add({type:"mc",theme:"pulso",sub:"Definição",q:"A pulsação é sentida como:",opts:["Compressão venosa","Expansão das artérias quando submetidas à pressão do sangue","Vibração óssea","Espasmo muscular"],correct:1,fb:"Expansão arterial sob pressão sanguínea."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Local PREFERENCIAL no adulto:",opts:["Carotídeo","Apical","Radial","Femoral"],correct:2,fb:"Radial é o preferencial."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Em latentes e crianças, alternativa de fácil acesso:",opts:["Radial","Temporal","Carotídeo","Apical"],correct:1,fb:"Temporal em latentes/crianças (fácil acesso)."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Em emergência ou choque, avaliam-se:",opts:["Radial e cubital","Carotídeo e femoral","Tibial posterior e dorso pé","Temporal e poplíteo"],correct:1,fb:"Carotídeo e femoral em emergência (grandes vasos centrais)."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Em latentes (< 2 anos) e arritmias, avalia-se:",opts:["Radial","Apical","Carotídeo","Temporal"],correct:1,fb:"Apical em latentes e arritmias."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Pulso braquial usa-se para:",opts:["Apenas frequência","Auscultar TA nos MS, e como local alternativo","Apenas circulação","Bebés"],correct:1,fb:"Braquial: TA nos MS e alternativa."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Pulso cubital avalia:",opts:["TA","Estado da circulação para a mão","Frequência geral","Bebés"],correct:1,fb:"Cubital: circulação para a mão."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Pulso poplíteo:",opts:["TA nos MI","Bebés","Mão","Coração"],correct:0,fb:"Poplíteo ausculta TA nos MI."});
+add({type:"mc",theme:"pulso",sub:"Locais",q:"Pulsos para circulação do PÉ:",opts:["Femoral e poplíteo","Tibial posterior e dorso do pé","Apical","Carotídeo"],correct:1,fb:"Tibial posterior e dorso do pé."});
+add({type:"mc",theme:"pulso",sub:"Frequência",q:"Taquicardia:",opts:["< 60 bpm","60-100 bpm","> 100 bpm","> 200 bpm"],correct:2,fb:"> 100 bpm."});
+add({type:"mc",theme:"pulso",sub:"Frequência",q:"Bradicardia:",opts:["< 60 bpm","< 80 bpm","< 100 bpm","< 120 bpm"],correct:0,fb:"< 60 bpm."});
+add({type:"mc",theme:"pulso",sub:"Ritmo",q:"Pulso RÍTMICO:",opts:["Intervalos desiguais","Intervalos iguais entre pulsações","Apenas regular >100 bpm","Apenas <60 bpm"],correct:1,fb:"Rítmico = intervalos iguais."});
+add({type:"mc",theme:"pulso",sub:"Ritmo",q:"Pulso ARRÍTMICO:",opts:["Intervalos iguais","Intervalos desiguais e inconstantes","Apenas frequência alta","Apenas frequência baixa"],correct:1,fb:"Desiguais e inconstantes."});
+add({type:"mc",theme:"pulso",sub:"Amplitude",q:"Amplitude do pulso é:",opts:["Frequência","Padrão","Volume de sangue impulsionado durante a contração ventricular","Resistência arterial"],correct:2,fb:"Volume na contração ventricular, sentido pelos dedos."});
+add({type:"mc",theme:"pulso",sub:"Amplitude",q:"Pulso FORTE:",opts:["↓ volume ejeção","↑ volume ejeção","Arrítmico","Filiforme"],correct:1,fb:"Forte = aumento volume de ejeção."});
+add({type:"mc",theme:"pulso",sub:"Amplitude",q:"Pulso fraco/débil/fino/filiforme:",opts:["↑ volume ejeção","↓ volume ejeção","Arrítmico","Forte"],correct:1,fb:"Filiforme = redução volume ejeção."});
+add({type:"mc",theme:"pulso",sub:"Amplitude",q:"O documento refere os seguintes tipos de amplitude:",opts:["Apenas forte e fraco","Forte, fraco/débil/filiforme, normal e ausente","Apenas forte e ausente","Apenas normal"],correct:1,fb:"Forte, fraco/débil/fino/filiforme, normal e ausente."});
+
+// ============================================================
+// 4. RESPIRAÇÃO
+// ============================================================
+add({type:"mc",theme:"resp",sub:"Conceitos",q:"VENTILAÇÃO:",opts:["Trocas alvéolo-GV","Movimento mecânico dos gases para dentro e fora dos pulmões","Distribuição GV pelos capilares","Hematose"],correct:1,fb:"Movimento mecânico."});
+add({type:"mc",theme:"resp",sub:"Conceitos",q:"DIFUSÃO:",opts:["Movimento mecânico","Movimento dos gases entre alvéolos e GV","Distribuição GV","Convecção"],correct:1,fb:"Difusão = alvéolos ↔ GV."});
+add({type:"mc",theme:"resp",sub:"Conceitos",q:"PERFUSÃO:",opts:["Movimento mecânico","Difusão","Distribuição dos GV pelos capilares pulmonares","Hematose"],correct:2,fb:"Perfusão = distribuição GV pelos capilares."});
+add({type:"mc",theme:"resp",sub:"Frequência",q:"Frequência respiratória mede-se:",opts:["Em 30s × 2","Por contagem de inspirações durante 1 minuto","Em 10s × 6","Por cronómetro a vista"],correct:1,fb:"1 minuto inteiro."});
+add({type:"mc",theme:"resp",sub:"Frequência",q:"Para evitar alteração consciente do padrão:",opts:["Avisar o utente","Continuar a segurar no pulso após avaliar pulso","Usar cronómetro evidente","Pedir colaboração"],correct:1,fb:"Manter mão no pulso, sem o utente perceber."});
+add({type:"mc",theme:"resp",sub:"Ritmo",q:"Em bebés a respiração:",opts:["É sempre regular","É menos regular — podem alternar lento com rápido","É sempre rápida","É sempre lenta"],correct:1,fb:"Bebés: padrão menos regular."});
+add({type:"mc",theme:"resp",sub:"Amplitude",q:"A amplitude pode ser:",opts:["Apenas torácica","Superficial/normal/profunda; torácica/abdominal-diafragmática/mista","Apenas profunda","Apenas mista"],correct:1,fb:"Superficial/normal/profunda; torácica/abd-diafragmática/mista."});
+add({type:"mc",theme:"resp",sub:"Amplitude",q:"Homens e crianças saudáveis tipicamente:",opts:["Torácica","Diafragmática","Mista","Apneica"],correct:1,fb:"Diafragmática."});
+add({type:"mc",theme:"resp",sub:"Amplitude",q:"Mulheres tipicamente:",opts:["Diafragmática","Respiração mais torácica, visível na parte superior do tronco","Mista exclusivamente","Apneia"],correct:1,fb:"Mais torácica."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"EXERCÍCIO:",opts:["Diminui ritmo","Aumenta o ritmo e profundidade para responder às necessidades","Não afeta","Apneia"],correct:1,fb:"↑ ritmo e profundidade."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"DOR AGUDA:",opts:["Não afeta","Altera frequência e ritmo, torna-a superficial","Apenas profunda","Apneia obrigatória"],correct:1,fb:"Frequência e ritmo alterados; superficial."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"ANSIEDADE:",opts:["Diminui","Aumenta frequência E profundidade — estimulação simpática","Apenas frequência","Apenas profundidade"],correct:1,fb:"Aumenta ambas (simpático)."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"TABAGISMO crónico:",opts:["Diminui","Aumenta a frequência em repouso quando NÃO está a fumar","Apenas durante o ato","Sem efeito"],correct:1,fb:"Aumenta em repouso fora do tabagismo."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"POSIÇÃO ereta:",opts:["Prejudica","Fomenta a expansão total do tórax","Apneia","Sem efeito"],correct:1,fb:"Ereta favorece."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Posição inclinada/curvada:",opts:["Favorece","Prejudica o movimento ventilatório","Sem efeito","Apneia"],correct:1,fb:"Prejudica."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Posição deitada:",opts:["Permite expansão total","Impede a expansão total do tórax","Sem efeito","Apneia obrigatória"],correct:1,fb:"Impede expansão total."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Analgésicos, narcóticos, anestésicos, hipnóticos sedativos:",opts:["Aumentam frequência","Provocam depressão da frequência respiratória","Sem efeito","Apenas em UCI"],correct:1,fb:"Depressão da frequência."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Anfetaminas e cocaína:",opts:["Diminuem","Podem aumentar frequência e profundidade","Sem efeito","Apenas profundidade"],correct:1,fb:"Aumentam frequência e profundidade."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Broncodilatadores:",opts:["Aumentam","Provocam diminuição da frequência","Sem efeito","Apenas profundidade"],correct:1,fb:"Diminuem frequência."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Lesão do tronco cerebral:",opts:["Não afeta","Afeta o centro respiratório, inibe frequência e ritmo","Apenas amplitude","Apenas em coma"],correct:1,fb:"Inibe centro respiratório."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Anemia (↓ hemoglobina):",opts:["Diminui frequência","Aumenta a frequência respiratória","Não afeta","Apenas em UCI"],correct:1,fb:"Anemia → ↑ frequência (compensação)."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Em altitude:",opts:["Hb saturada baixa → aumenta frequência E profundidade","Frequência diminui","Apneia recorrente","Sem efeito"],correct:0,fb:"Saturação Hb ↓ → ↑ frequência e profundidade."});
+add({type:"mc",theme:"resp",sub:"Fatores",q:"Função anómala das células sanguíneas:",opts:["Diminui frequência","Reduz capacidade da Hb transportar O2 → aumenta frequência e profundidade","Sem efeito","Apenas em altitude"],correct:1,fb:"Reduz transporte O2 → ↑ frequência e profundidade."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"BRADIPNEIA:",opts:["Regular > 20","Regular < 12 ciclos/min","Apneia intermitente","Profunda"],correct:1,fb:"Regular < 12 c/min."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"TAQUIPNEIA:",opts:["< 12","Regular > 20 ciclos/min","Apneia","Profunda regular"],correct:1,fb:"Regular > 20 c/min."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"POLIPNEIA:",opts:["Apneia","Amplitude aumentada (típica do exercício)","Frequência baixa","Cessação"],correct:1,fb:"Polipneia = ↑ amplitude (exercício)."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"APNEIA:",opts:["Lenta","Cessação da respiração por vários segundos; prolongada → paragem","Profunda","Rápida"],correct:1,fb:"Cessação; prolongada = paragem."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"HIPERVENTILAÇÃO:",opts:["Apenas amplitude ↑","Frequência E amplitude aumentadas","Apneia","Apenas frequência ↑"],correct:1,fb:"Frequência E amplitude ↑."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"HIPOVENTILAÇÃO:",opts:["Frequência ↑","Frequência baixa, amplitude pode estar diminuída","Apenas amplitude ↑","Apneia"],correct:1,fb:"Frequência baixa, amplitude pode ↓."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"CHEYNE-STOKES:",opts:["Profunda regular","Apneia + hiperventilação alternadas, padrão crescendo-decrescendo","2-3 ciclos superficiais + apneia","Lenta superficial"],correct:1,fb:"Apneia/hiperventilação alternadas."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"KUSSMAUL:",opts:["Apneia + hiper","Ciclos profundos, frequência ↑, regulares","Superficial irregular","Lenta"],correct:1,fb:"Profunda, rápida, regular."});
+add({type:"mc",theme:"resp",sub:"Alterações",q:"BIOT:",opts:["Profunda regular","Superficial 2-3 ciclos seguida de apneia irregular","Crescendo-decrescendo","Lenta regular"],correct:1,fb:"Biot: superficial 2-3 ciclos + apneia irregular."});
+add({type:"mc",theme:"resp",sub:"Monitorização",q:"Avaliar respiração:",opts:["Apenas em UCI","Discretamente, mantendo mão na posição do pulso","Avisando antes","Por estimação visual"],correct:1,fb:"Discretamente, posição do pulso."});
+
+// ============================================================
+// 5. TENSÃO ARTERIAL
+// ============================================================
+add({type:"mc",theme:"ta",sub:"Definição",q:"TA é:",opts:["Pressão venosa","Pressão exercida pelo sangue sobre a parede das artérias em cada contração cardíaca","Pressão intratorácica","Pressão hidrostática"],correct:1,fb:"Pressão sobre parede arterial em cada contração."});
+add({type:"mc",theme:"ta",sub:"Definição",q:"O conhecimento da TA permite avaliar:",opts:["Apenas hidratação","DC, volémia, estado circulatório, resistência arterial e saúde CV","Apenas DC","Apenas RVP"],correct:1,fb:"DC, volémia, estado circulatório, resistência, saúde CV."});
+add({type:"mc",theme:"ta",sub:"TAM",q:"TA média obtém-se por:",opts:["(2×diast+sist)÷3","(Sist+diast)÷2","Sist−diast","Diast×2"],correct:1,fb:"Documento: (sist+diast)÷2."});
+add({type:"mc",theme:"ta",sub:"Sistólica",q:"TA sistólica:",opts:["Repouso","Pico máximo na ejeção; primeiro batimento ao abrir lentamente a válvula","Última audível","Média"],correct:1,fb:"Pico máximo na ejeção; 1º batimento."});
+add({type:"mc",theme:"ta",sub:"Diastólica",q:"TA diastólica:",opts:["Pico máximo","Pressão em repouso, último som audível ao abrir a válvula","Média","Primeiro batimento"],correct:1,fb:"Repouso; último som audível."});
+add({type:"mc",theme:"ta",sub:"Fatores",q:"Fatores que influenciam a TA incluem:",opts:["Apenas DC e RVP","DC, RVP, volume sanguíneo, viscosidade, elasticidade arterial, idade, peso, stress, raça, variação diurna, emoções, sexo, fármacos, atividade física","Apenas idade","Apenas medicamentos"],correct:1,fb:"Lista exaustiva no documento."});
+add({type:"mc",theme:"ta",sub:"Esfigmomanómetros",q:"Tipos referidos:",opts:["Apenas mercúrio e digital","Mercúrio, aneroide, dinamap, estetoscópio, digital","Apenas aneroide","Apenas digital"],correct:1,fb:"Mercúrio, aneroide, dinamap, estetoscópio, digital."});
+add({type:"mc",theme:"ta",sub:"Condições",q:"O paciente deve descansar antes pelo menos:",opts:["1 min","5 minutos","15 min","30 min"],correct:1,fb:"≥ 5 minutos de descanso."});
+add({type:"mc",theme:"ta",sub:"Condições",q:"Posição correta:",opts:["Em pé","Sentado, costas apoiadas, pernas descruzadas, sala silenciosa, temperatura confortável","Decúbito ventral","Trendelenburg"],correct:1,fb:"Sentado, costas apoiadas, pernas descruzadas."});
+add({type:"mc",theme:"ta",sub:"Condições",q:"O paciente:",opts:["Pode falar","NÃO deve falar antes nem durante a medição","Deve respirar fundo","Pode ler"],correct:1,fb:"Não falar antes nem durante."});
+add({type:"mc",theme:"ta",sub:"Condições",q:"Quando não é possível assegurar condições ótimas:",opts:["Não medir","Reportar este facto juntamente com a medição","Anotar e ignorar","Repetir 5×"],correct:1,fb:"Reportar com a medição."});
+add({type:"mc",theme:"ta",sub:"Apoio",q:"Sem apoio do braço, ocorre:",opts:["Sem efeito","Exercício isométrico que aumenta PA até 10% e a FC","Diminui PA","Apneia"],correct:1,fb:"Isométrico → PA até 10% e FC ↑."});
+add({type:"mc",theme:"ta",sub:"Apoio",q:"O braço deve estar:",opts:["Sem apoio","Apoiado, preferencialmente em mesa","Em flexão","Acima da cabeça"],correct:1,fb:"Apoiado em mesa."});
+add({type:"mc",theme:"ta",sub:"Posição",q:"Braçadeira ABAIXO do nível do coração:",opts:["Subestima","Sobrestima","Não afeta","Apneia"],correct:1,fb:"Abaixo = sobrestima."});
+add({type:"mc",theme:"ta",sub:"Posição",q:"Braçadeira ACIMA do nível do coração:",opts:["Sobrestima","Subestima","Não afeta","Aumenta FC"],correct:1,fb:"Acima = subestima."});
+add({type:"mc",theme:"ta",sub:"Posição",q:"Magnitude do erro em sentado/pé:",opts:["Até 2","Até 5","Até 10 mmHg","Até 30 mmHg"],correct:2,fb:"Até 10 mmHg sentado/pé."});
+add({type:"mc",theme:"ta",sub:"Posição",q:"Magnitude do erro em decúbito dorsal:",opts:["Até 2","Até 5 mmHg","Até 10","Até 20"],correct:1,fb:"Até 5 mmHg em decúbito dorsal."});
+add({type:"mc",theme:"ta",sub:"Posição",q:"Braço deve estar:",opts:["Acima da cabeça","Ao nível do coração — entre 4º e 5º espaços intercostais","Em flexão","Pendente"],correct:1,fb:"Nível coração, 4º-5º EIC."});
+add({type:"mc",theme:"ta",sub:"Seleção",q:"Na primeira medição:",opts:["Apenas dominante","Recomendado medir em ambos os braços para excluir doença oclusiva","Apenas direito","Aleatório"],correct:1,fb:"Ambos os braços na 1ª medição."});
+add({type:"mc",theme:"ta",sub:"Seleção",q:"Diferença significativa entre braços:",opts:["> 5 sist e/ou >2 diast","> 10 sistólica e/ou > 5 diastólica","> 20 sist","> 30 sist"],correct:1,fb:"> 10 sist e/ou > 5 diast."});
+add({type:"mc",theme:"ta",sub:"Seleção",q:"Quando há diferença consistente, usar:",opts:["Sempre o esquerdo","O braço com TA mais elevada","Sempre o direito","Aleatório"],correct:1,fb:"Usar o de TA mais elevada."});
+add({type:"mc",theme:"ta",sub:"Seleção",q:"Evitar avaliar TA em:",opts:["Braço dominante","Lado mastectomizado, com perfusão em curso ou fístula AV","Braço apoiado","Braço ao nível do coração"],correct:1,fb:"Mastectomia, perfusão, fístula AV."});
+add({type:"mc",theme:"ta",sub:"Braçadeira",q:"Antes da utilização inicial:",opts:["Não verificar","Assegurar que dimensões da braçadeira são adequadas","Apenas usar","Apenas centrar"],correct:1,fb:"Verificar dimensões adequadas."});
+add({type:"mc",theme:"ta",sub:"Braçadeira",q:"A zona central da braçadeira deve estar sobre:",opts:["O bíceps","A artéria braquial","O cotovelo","O ombro"],correct:1,fb:"Sobre artéria braquial."});
+add({type:"mc",theme:"ta",sub:"Braçadeira",q:"Largura adequada:",opts:["20%","Cerca de 40% da circunferência do braço, entre olécraneo e acrómio","60%","100%"],correct:1,fb:"~40%, entre olécraneo e acrómio."});
+add({type:"mc",theme:"ta",sub:"Braçadeira",q:"Braçadeira ESTREITA:",opts:["Falsamente baixa","Falsamente alta","Sem efeito","Instável"],correct:1,fb:"Estreita = falsamente alta."});
+add({type:"mc",theme:"ta",sub:"Braçadeira",q:"Braçadeira LARGA:",opts:["Falsamente alta","Falsamente baixa","Sem efeito","Instável"],correct:1,fb:"Larga = falsamente baixa."});
+add({type:"mc",theme:"ta",sub:"Erros",q:"Falso valor ALTO por (escolhe a melhor):",opts:["Desinsuflar depressa","Desinsuflar muito devagar","Braçadeira larga","Braço acima do nível"],correct:1,fb:"Desinsuflar devagar = falso alto."});
+add({type:"mc",theme:"ta",sub:"Erros",q:"Falso valor BAIXO por:",opts:["Braçadeira estreita","Desinsuflar muito depressa","Braço abaixo","Não esperar 30s"],correct:1,fb:"Desinsuflar depressa = falso baixo."});
+
+// ============================================================
+// 6. DOR
+// ============================================================
+add({type:"mc",theme:"dor",sub:"Definição",q:"A dor define-se como:",opts:["Apenas sensorial","Experiência multidimensional desagradável com componente sensorial e emocional","Apenas emocional","Apenas física"],correct:1,fb:"Multidimensional: sensorial + emocional."});
+add({type:"mc",theme:"dor",sub:"Definição",q:"A dor é um sintoma que:",opts:["Apenas surge em UCI","Acompanha de forma transversal a generalidade das situações patológicas","Só em pós-op","Apenas oncologia"],correct:1,fb:"Transversal."});
+add({type:"mc",theme:"dor",sub:"Avaliação",q:"A avaliação da dor:",opts:["Pontual","Contínua e regular, à semelhança dos outros SV","Apenas se queixa","Apenas em UCI"],correct:1,fb:"Contínua e regular."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor AGUDA:",opts:["Sem causa clara","Aparecimento súbito, dano tecidular, cura < 6 meses","> 6 meses","Em parte amputada"],correct:1,fb:"Súbita, dano tecidular, < 6 meses."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor CRÓNICA:",opts:["< 1 mês","Persiste > 6 meses sem se curar","< 3 meses","Apenas pós-op"],correct:1,fb:"> 6 meses sem se curar."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor SOMÁTICA:",opts:["Vísceras","Origem em ossos e músculos","SNC","Amputação"],correct:1,fb:"Ossos e músculos."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor VISCERAL:",opts:["Ossos e músculos","Vísceras (órgãos abdominais ou outras cavidades)","Amputação","Simpática"],correct:1,fb:"Vísceras."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor SIMPÁTICA:",opts:["Ossos","Vísceras","Associada ao sistema nervoso simpático","Aguda apenas"],correct:2,fb:"SN simpático."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor FANTASMA:",opts:["Visceral","Sentida em extremidade não existente que foi amputada","Ossos","Crónica"],correct:1,fb:"Em parte amputada."});
+add({type:"mc",theme:"dor",sub:"Classificação",q:"Dor IRRADIADA:",opts:["Em parte amputada","Parece emanar de um local quando a fonte é distante da origem","Apenas ossos","Apenas crónica"],correct:1,fb:"Fonte distante da origem."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"A intensidade da dor é:",opts:["Avaliada pelo enfermeiro","Sempre referida pelo utente","Calculada por exame","Estimada por familiar"],correct:1,fb:"Sempre referida pelo utente."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"A intensidade refere-se:",opts:["Ao último dia","Ao momento da colheita","À semana","Sem importância temporal"],correct:1,fb:"Momento da colheita."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"Idade mínima das escalas:",opts:["1 ano","> 3 anos","5 anos","7 anos"],correct:1,fb:"> 3 anos, conscientes e colaborantes."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"Para o mesmo doente:",opts:["Mudar escala em cada turno","A escala deve ser sempre a mesma","Familiar escolhe","Médico escolhe"],correct:1,fb:"Mesma escala sempre — padronização."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"Para correta avaliação:",opts:["Linguagem técnica","Linguagem comum entre profissional e doente, padronização e ensino prévio","Sem instruções","Apenas registo"],correct:1,fb:"Linguagem comum + padronização + ensino prévio."});
+add({type:"mc",theme:"dor",sub:"Regras",q:"O profissional deve assegurar:",opts:["Que o utente não fala","Que o utente compreende corretamente o significado da escala","Que escolhe a maior dor","Apenas registar"],correct:1,fb:"Compreensão correta."});
+add({type:"mc",theme:"dor",sub:"Escala visual",q:"Visual analógica é:",opts:["Régua 0-10","Linha horizontal/vertical de 10 cm com 'Sem dor' e 'Dor máxima' nas extremidades","Adjetivos","Faces"],correct:1,fb:"Linha de 10 cm."});
+add({type:"mc",theme:"dor",sub:"Escala visual",q:"Como o utente assinala?",opts:["Número","Cruz ou traço perpendicular à linha, no ponto que representa a dor","Adjetivo","Face"],correct:1,fb:"Cruz ou traço perpendicular."});
+add({type:"mc",theme:"dor",sub:"Escala visual",q:"Como se obtém o valor?",opts:["Pergunta direta","Mede-se em centímetros a distância entre o início da linha (0) e o ponto assinalado","Calculado em escala","Pelo familiar"],correct:1,fb:"Distância em cm desde o 0."});
+add({type:"mc",theme:"dor",sub:"Escala numérica",q:"Numérica:",opts:["Linha contínua","Régua dividida em 11 partes iguais (0-10)","Adjetivos","Faces"],correct:1,fb:"11 partes iguais (0-10)."});
+add({type:"mc",theme:"dor",sub:"Escala numérica",q:"0 corresponde a:",opts:["Dor máxima","Sem dor","Moderada","Ligeira"],correct:1,fb:"0 = Sem dor."});
+add({type:"mc",theme:"dor",sub:"Escala numérica",q:"10 corresponde a:",opts:["Sem dor","Dor máxima","Moderada","Ligeira"],correct:1,fb:"10 = Dor máxima."});
+add({type:"mc",theme:"dor",sub:"Escala qualitativa",q:"Qualitativa:",opts:["Régua","Adjetivos: Sem dor / Ligeira / Moderada / Intensa / Máxima","Linha","Faces"],correct:1,fb:"Cinco adjetivos."});
+add({type:"mc",theme:"dor",sub:"Escala faces",q:"Escala de FACES:",opts:["Régua","Adjetivos","Mímica facial — felicidade='Sem dor', tristeza máxima='Dor máxima'","Linha de 10 cm"],correct:2,fb:"Mímica facial; regista-se número equivalente."});
+
+// ============================================================
+// 7. GLICEMIA
+// ============================================================
+add({type:"mc",theme:"glic",sub:"Definição",q:"Glicemia capilar:",opts:["Glicose venosa","Concentração de glicose no sangue por punção capilar na polpa digital","Glicose urina","Glicose intersticial"],correct:1,fb:"Punção capilar na polpa digital."});
+add({type:"mc",theme:"glic",sub:"Função",q:"Servem para:",opts:["Apenas registo","Monitorizar glicose, apoiar decisão clínica, prevenir hipo/hiper, promover autocuidado, avaliar eficácia terapêutica","Apenas insulina","Apenas em DM"],correct:1,fb:"Múltiplas funções listadas."});
+add({type:"mc",theme:"glic",sub:"Indicações",q:"Indicações para a glicemia capilar:",opts:["Apenas DM","DM, sintomas hipo/hiper, monitorização hospitalar, rotina pré/pós-prandial","Apenas hipoglicemia","Apenas pediátricos"],correct:1,fb:"Diagnóstico DM, hipo/hiper, monitorização, rotina."});
+add({type:"mc",theme:"glic",sub:"Sintomas hipo",q:"Sintomas de HIPOGLICEMIA:",opts:["Poliúria, polidipsia","Sudorese, tremores, confusão","Cefaleia e febre","Pele quente e seca"],correct:1,fb:"Sudorese, tremores, confusão."});
+add({type:"mc",theme:"glic",sub:"Sintomas hiper",q:"Sintomas de HIPERGLICEMIA:",opts:["Sudorese, tremores","Poliúria, polidipsia, fadiga","Cianose","Apenas tremores"],correct:1,fb:"Poliúria, polidipsia, fadiga."});
+add({type:"mc",theme:"glic",sub:"Contraindicações",q:"Contraindicação:",opts:["Pessoa diabética","Má perfusão periférica (dedos frios/cianóticos), edema significativo, lesões/infeções/calosidades, uso excessivo do mesmo local","Sintomas de hipo","Pré-prandial"],correct:1,fb:"Má perfusão, edema, lesões, calosidades, uso excessivo."});
+add({type:"mc",theme:"glic",sub:"Material",q:"Material necessário:",opts:["Só glicosímetro","Glicosímetro calibrado + tiras compatíveis + lanceta uso único + compressas + álcool 70% + luvas não estéreis + contentor cortoperfurantes","Apenas tiras","Sem álcool"],correct:1,fb:"Lista completa."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Primeiro passo do procedimento:",opts:["Punção","Higienizar mãos","Limpar 1ª gota","Registar"],correct:1,fb:"Higienizar mãos."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Local da punção:",opts:["Centro polpa","Lateral da polpa do dedo (menor sensibilidade à dor, melhor fluxo)","Calcanhar","Lóbulo orelha"],correct:1,fb:"Lateral da polpa."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Antes de puncionar:",opts:["Aplicar de imediato","Desinfetar e DEIXAR SECAR completamente","Aplicar tira já","Apertar dedo"],correct:1,fb:"Desinfetar + secar."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"A primeira gota:",opts:["Encostar à tira","Limpar com compressa para evitar contaminação por fluidos intersticiais","Reaproveitar","Descartar para chão"],correct:1,fb:"Limpar a 1ª gota."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Usa-se a:",opts:["1ª gota","2ª gota — encostando à extremidade da tira","3ª gota","Qualquer"],correct:1,fb:"Segunda gota."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Durante a leitura:",opts:["Mexer aparelho","Manter o glicosímetro estável","Acelerar leitura","Calibrar"],correct:1,fb:"Estável durante leitura."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"Após a punção:",opts:["Massajar","Aplicar compressa seca até hemostase","Aplicar pomada","Lavar com água"],correct:1,fb:"Compressa seca até hemostase."});
+add({type:"mc",theme:"glic",sub:"Procedimento",q:"A lanceta:",opts:["Reutilizável","Uso único — descartar imediatamente em contentor cortoperfurantes","Reutilizável após álcool","Reutilizável no mesmo doente"],correct:1,fb:"Uso único; contentor cortoperfurantes."});
+add({type:"mc",theme:"glic",sub:"Valores",q:"Jejum:",opts:["50-70","70-99 mg/dL","100-130","< 180"],correct:1,fb:"70-99 mg/dL."});
+add({type:"mc",theme:"glic",sub:"Valores",q:"Pré-prandial:",opts:["50-70","70-99","80-130 mg/dL","< 180"],correct:2,fb:"80-130 mg/dL."});
+add({type:"mc",theme:"glic",sub:"Valores",q:"Pós-prandial:",opts:["< 100","70-99","80-130","< 180 mg/dL"],correct:3,fb:"< 180 mg/dL."});
+add({type:"mc",theme:"glic",sub:"Sinais alarme",q:"Perante valor anómalo:",opts:["Aceitar","Validar repetindo a técnica ou confirmando analiticamente","Apenas registar","Pedir nova consulta"],correct:1,fb:"Validar valores anómalos."});
+add({type:"mc",theme:"glic",sub:"Hipoglicemia",q:"Hipoglicemia consciente:",opts:["Insulina","Glicose oral rápida","Glucagon","Glicose EV"],correct:1,fb:"Glicose oral rápida."});
+add({type:"mc",theme:"glic",sub:"Hipoglicemia",q:"Hipoglicemia inconsciente:",opts:["Glicose oral","Glucagon ou glicose EV","Insulina","Aguardar"],correct:1,fb:"Glucagon ou glicose EV."});
+add({type:"mc",theme:"glic",sub:"Hiperglicemia",q:"Hiperglicemia — passos:",opts:["Glicose oral","Avaliar terapêutica + insulina conforme prescrição + hidratação","Apenas hidratação","Glucagon"],correct:1,fb:"Avaliar terapêutica + insulina + hidratação."});
+add({type:"mc",theme:"glic",sub:"Educação",q:"Cuidado de educação no diabético:",opts:["Mesmo dedo","Garantir assepsia (cicatrização lenta), rodar locais, ensinar autovigilância e sinais de alerta","Não desinfetar","Reutilizar lanceta"],correct:1,fb:"Múltiplos cuidados; rotação de dedos."});
+add({type:"mc",theme:"glic",sub:"Registo",q:"Registo inclui:",opts:["Apenas valor","Valor + hora + condições da colheita + intervenções e resposta do utente","Apenas valor + hora","Apenas resposta"],correct:1,fb:"Valor, hora, condições, intervenções, resposta."});
+add({type:"mc",theme:"glic",sub:"Ética",q:"Ética e segurança incluem:",opts:["Não explicar","Explicar e obter autorização clara, lavagem mãos, material estéril, empatia, proteção","Apenas autorização","Apenas explicar"],correct:1,fb:"Ética + qualidade + empatia + proteção própria."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"Os CGM:",opts:["Substituem totalmente picadas","Permitem leitura em tempo real, reduzindo ou eliminando drasticamente picadas","Apenas em UCI","Não fiáveis"],correct:1,fb:"Reduzem ou eliminam drasticamente."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"As leituras CGM são feitas:",opts:["1×/dia","A cada poucos minutos, gerando histórico contínuo","De hora em hora","Manualmente"],correct:1,fb:"Cada poucos minutos."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"Impacto da monitorização 24h:",opts:["Apenas registo","Identifica padrões ocultos, alertas precoces, decisões mais informadas, redução HbA1c, proteção sono","Apenas autonomia","Apenas custo"],correct:1,fb:"Padrões + alertas + HbA1c + sono."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"Paradoxo do atraso:",opts:["< 1 min","5-15 min — sensor lê líquido intersticial","30-60 min","Mais de 1h"],correct:1,fb:"5-15 min de desfasamento."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"Limitações:",opts:["Apenas físicas","Dermatológicas (alergias adesivo), logísticas (substituição), económicas (custo)","Apenas custo","Sem limitações"],correct:1,fb:"Dermatológicas + logísticas + económicas."});
+add({type:"mc",theme:"glic",sub:"CGM",q:"Confirmação por picada digital obrigatória em:",opts:["Todas as leituras","Sintomas discordantes, valores extremos, hipoglicemias suspeitas, calibração","Apenas calibração","Apenas hipo"],correct:1,fb:"Quatro cenários definidos."});
+add({type:"mc",theme:"glic",sub:"Enfermagem",q:"Papel da enfermagem no CGM:",opts:["Apenas técnico","Educador terapêutico + monitor de segurança + facilitador da adaptação","Apenas educador","Apenas monitor"],correct:1,fb:"Três papéis."});
+
+// ============================================================
+// 8. HIGIENE
+// ============================================================
+add({type:"mc",theme:"hig",sub:"Dignidade",q:"Pilares da dignidade no toque:",opts:["Apenas autonomia","Identidade, autonomia, presença, respeito mútuo","Apenas privacidade","Higiene e conforto"],correct:1,fb:"Identidade + autonomia + presença + respeito mútuo."});
+add({type:"mc",theme:"hig",sub:"Dignidade",q:"IDENTIDADE:",opts:["Esconder o nome","Identificar-se pelo nome antes do toque e chamar a pessoa pelo nome","Apenas explicar","Apenas tocar"],correct:1,fb:"Identificar-se e chamar pelo nome."});
+add({type:"mc",theme:"hig",sub:"Dignidade",q:"AUTONOMIA:",opts:["Decidir tudo pelo utente","Explicar passos e tornar a pessoa participante","Não explicar","Tratar como criança"],correct:1,fb:"Explicar e tornar participante."});
+add({type:"mc",theme:"hig",sub:"Dignidade",q:"PRESENÇA:",opts:["Ouvir distraidamente","Ouvir atentamente sem interromper, distância que permita franqueza e privacidade","Falar muito","Trabalhar em silêncio absoluto"],correct:1,fb:"Ouvir atento + privacidade."});
+add({type:"mc",theme:"hig",sub:"Dignidade",q:"RESPEITO MÚTUO:",opts:["Tratar com infantilização","Tratar como adulto, evitar expressões manipuladoras ou estereótipos","Comandar","Insistir"],correct:1,fb:"Tratar como adulto."});
+add({type:"mc",theme:"hig",sub:"Autoconhecimento",q:"O autoconhecimento:",opts:["Não importa","Reflexão interna, consciência das próprias perceções, projeção empática, ação gentil","Apenas técnica","Substitui ética"],correct:1,fb:"Reflexão + consciência + empatia + gentileza."});
+add({type:"mc",theme:"hig",sub:"Avaliação",q:"Durante os cuidados de higiene avalia-se:",opts:["Apenas pele","Integridade pele, mobilidade, autocuidado, orientação, ventilação e odor","Apenas mobilidade","Apenas autocuidado"],correct:1,fb:"Avaliação clínica de alto nível."});
+add({type:"mc",theme:"hig",sub:"3 pilares",q:"Os 3 pilares do cuidado de higiene:",opts:["Velocidade, eficácia, registo","Controlo de infeção, dignidade e conforto, promoção de autonomia","Apenas higiene","Imagem, registo, ordem"],correct:1,fb:"Controlo infeção + dignidade/conforto + autonomia."});
+add({type:"mc",theme:"hig",sub:"3 pilares",q:"Controlo de infeção: princípio fundamental:",opts:["Aleatório","Do mais limpo para o mais sujo","Do mais sujo para o mais limpo","Conforme conforto"],correct:1,fb:"Mais limpo → mais sujo."});
+add({type:"mc",theme:"hig",sub:"3 pilares",q:"Dignidade e conforto:",opts:["Expor todo o corpo","Expor apenas a área a ser lavada, movimentos firmes e suaves","Não cobrir","Trabalhar rápido"],correct:1,fb:"Expor só a área lavada."});
+add({type:"mc",theme:"hig",sub:"3 pilares",q:"Promoção da autonomia:",opts:["Fazer tudo pelo utente","Incentivar autocuidado, estimular participação mesmo em dependentes","Apenas registar","Não envolver"],correct:1,fb:"Estimular participação para mobilidade e autoestima."});
+add({type:"mc",theme:"hig",sub:"Ajuda",q:"Ajuda PARCIAL (Norma 3.1.1.1):",opts:["25%","Utente lava até 54%","75%","100%"],correct:1,fb:"Até 54% — supervisão e instrução."});
+add({type:"mc",theme:"hig",sub:"Ajuda",q:"Ajuda TOTAL (Norma 3.1.1.2):",opts:["Apenas supervisionar","Enfermeiro executa 100% (geralmente com apoio de outro)","Apenas preparar material","Apenas instruir"],correct:1,fb:"100%, com apoio."});
+add({type:"mc",theme:"hig",sub:"Ordem",q:"Ordem do banho:",opts:["Genital → cabeça","Cabeça → MS → MI → dorso e nádegas → genital","Aleatória","Pelo conforto"],correct:1,fb:"Cabeça, MS, MI, dorso/nádegas, genital."});
+add({type:"mc",theme:"hig",sub:"Pés",q:"Atenção redobrada à pele e unhas dos pés em:",opts:["Atletas","Diabéticos ou doença vascular periférica","Crianças","Idosos saudáveis"],correct:1,fb:"DM ou DVP."});
+add({type:"mc",theme:"hig",sub:"Olhos",q:"Olhos:",opts:["Interno → externo","Externo → interno, toalhete diferente para cada olho","Mesmo toalhete","Aleatório"],correct:1,fb:"Externo → interno; toalhete diferente."});
+add({type:"mc",theme:"hig",sub:"Boca",q:"Em utentes dependentes, escovar dentes:",opts:["Hiperextensão","Cabeça lateralmente para prevenir aspiração","Decúbito dorsal","Sentado direito"],correct:1,fb:"Lateral; previne aspiração."});
+add({type:"mc",theme:"hig",sub:"MS",q:"Lavagem dos braços:",opts:["Proximal → distal","Distal → proximal (mãos para axilas), movimentos circulantes","Apenas axila","Aleatória"],correct:1,fb:"Distal → proximal; favorece retorno venoso."});
+add({type:"mc",theme:"hig",sub:"Tronco",q:"Zonas de maceração que requerem secagem rigorosa:",opts:["Apenas axilas","Axilas, pregas pescoço, umbigo, infra mamária","Apenas dorso","Apenas calcanhares"],correct:1,fb:"Quatro zonas — secar muito bem."});
+add({type:"mc",theme:"hig",sub:"Tronco",q:"Durante a lavagem do tórax:",opts:["Expor todo","Expor apenas o lado a ser lavado, mantendo o resto coberto","Sem cobertura","Cobrir apenas membros"],correct:1,fb:"Expor só o lado lavado."});
+add({type:"mc",theme:"hig",sub:"MI",q:"Membros inferiores e pés:",opts:["Não imergir","Proteger cama com toalha em largura, fletir joelhos, imergir pés diretamente na bacia","Apenas a partir do joelho","Sem flexão"],correct:1,fb:"Toalha em largura + fletir + imergir."});
+add({type:"mc",theme:"hig",sub:"MI",q:"Espaços entre os dedos dos pés:",opts:["Não secar","Lavar e SECAR rigorosamente — prevenir infeções fúngicas","Aplicar talco","Apenas lavar"],correct:1,fb:"Secar rigorosamente."});
+add({type:"mc",theme:"hig",sub:"MI",q:"Massajar calcanhares e maleolar com hidratante serve para:",opts:["Estética","Prevenir úlceras por pressão","Aliviar dor","Reduzir transpiração"],correct:1,fb:"Prevenção de UPP."});
+add({type:"mc",theme:"hig",sub:"Dorso",q:"Lavagem do dorso:",opts:["Decúbito dorsal","Decúbito lateral, manter região anterior protegida com toalha","Sentado","Em pé"],correct:1,fb:"Decúbito lateral, anterior protegido."});
+add({type:"mc",theme:"hig",sub:"Dorso",q:"Lavar do:",opts:["Lombar para cima","Pescoço até às nádegas, massajando com hidratante","Apenas centro","Apenas nádegas"],correct:1,fb:"Pescoço → nádegas + hidratante."});
+add({type:"mc",theme:"hig",sub:"Genital",q:"Antes da higiene genital:",opts:["Manter mesma água/luvas","Trocar a água da bacia E calçar luvas novas","Apenas trocar luvas","Apenas trocar água"],correct:1,fb:"Trocar água E luvas."});
+add({type:"mc",theme:"hig",sub:"Genital",q:"FEMININO:",opts:["Ascendente","Movimento único descendente, com toalhete diferente a cada passagem","Circular","Aleatório"],correct:1,fb:"Único descendente; toalhete diferente."});
+add({type:"mc",theme:"hig",sub:"Genital",q:"MASCULINO:",opts:["Não retrair prepúcio","Retrair prepúcio, limpar meato em movimentos circulares (centro→periferia, glande→base), reposicionar prepúcio","Da base para a glande","Sem reposicionar"],correct:1,fb:"Retrair → limpar circular centro→periferia → reposicionar."});
+add({type:"mc",theme:"hig",sub:"Ambiente",q:"Preparação da cama (altura):",opts:["Sem ajustar","Ajustar a uma altura confortável (para o profissional)","Sempre baixa","Sempre alta"],correct:1,fb:"Altura confortável."});
+add({type:"mc",theme:"hig",sub:"Ambiente",q:"Antes de iniciar:",opts:["Não verificar nada","Verificar entubações/cateteres IV para prevenir remoção inadvertida","Não importa","Remover tudo"],correct:1,fb:"Verificar tubos/cateteres."});
+add({type:"mc",theme:"hig",sub:"Roupa",q:"Roupa suja:",opts:["Para o chão","Descartar diretamente no carro aos pés da cama","Acumular na cama","Lavar à mão"],correct:1,fb:"Carro aos pés da cama."});
+add({type:"mc",theme:"hig",sub:"Roupa",q:"Roupa limpa e suja:",opts:["Misturadas","Separadas","Empilhadas","Sem regra"],correct:1,fb:"Separar limpa de suja."});
+add({type:"mc",theme:"hig",sub:"Roupa",q:"Ao trocar roupa:",opts:["Sacudir","Não levantar pó","Bater os lençóis","Atirar"],correct:1,fb:"Não levantar pó."});
+add({type:"mc",theme:"hig",sub:"Cama",q:"Lençol debaixo:",opts:["Com rugas","Esticado e sem rugas","Solto","Dobrado"],correct:1,fb:"Esticado e sem rugas."});
+add({type:"mc",theme:"hig",sub:"Cama",q:"Se houver lesões nos pés:",opts:["Apertar","Libertar o lençol ou usar rolo","Não cobrir","Pôr peso"],correct:1,fb:"Libertar o lençol ou usar rolo."});
+add({type:"mc",theme:"hig",sub:"Cama ocupada",q:"Posicionar utente em:",opts:["Decúbito dorsal","Decúbito lateral","Sentado","Em pé"],correct:1,fb:"Decúbito lateral."});
+add({type:"mc",theme:"hig",sub:"Cama ocupada",q:"Lençol sujo:",opts:["Retirar inteiro","Enrolar até ao centro, encostando-o às costas do utente","Atirar fora","Manter"],correct:1,fb:"Enrolar ao centro, contra as costas."});
+add({type:"mc",theme:"hig",sub:"Cama ocupada",q:"Lençol limpo:",opts:["Cobrir tudo de uma vez","Colocar na metade vazia, entalar rigorosamente (canto)","Sem entalar","Solto"],correct:1,fb:"Metade vazia + canto entalado."});
+
+// ============================================================
+// 9. PROCESSO ENFERMAGEM
+// ============================================================
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"A avaliação inicial é:",opts:["Última etapa","A primeira etapa do processo de enfermagem","Etapa intermédia","Não pertence ao processo"],correct:1,fb:"Primeira etapa."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"Se mal feita:",opts:["Sem consequências","Compromete todo o processo","Apenas atrasa","Apenas administrativamente"],correct:1,fb:"Compromete todo o processo."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"Constitui:",opts:["Tarefa secundária","Competência fundamental — ponto de partida para decisão clínica e planeamento individualizado","Apenas registo","Apenas exame físico"],correct:1,fb:"Competência fundamental."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"O enfermeiro:",opts:["Apenas pergunta","Recolhe, organiza E interpreta informação sobre o estado de saúde","Apenas regista","Apenas executa prescrições"],correct:1,fb:"Recolhe + organiza + interpreta."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"A avaliação permite:",opts:["Apenas registar","Identificar problemas, reconhecer riscos, detetar alterações precoces, monitorizar evolução, priorizar, apoiar decisão interdisciplinar","Apenas problemas","Apenas riscos"],correct:1,fb:"Seis funções listadas."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"A avaliação deve ser:",opts:["Pontual","Sistemática, contínua, centrada na pessoa, integrando dados subjetivos e objetivos","Apenas objetiva","Apenas subjetiva"],correct:1,fb:"Sistemática + contínua + holística."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"Objetivos:",opts:["Apenas físico","Identificar funcionamento físico/psíquico-social e riscos individuais com medidas preventivas","Apenas social","Apenas riscos"],correct:1,fb:"Físico+psíquico-social + riscos preventivos."});
+add({type:"mc",theme:"proc",sub:"Avaliação inicial",q:"Inclui:",opts:["Apenas exame físico","História de saúde, exame físico, dados complementares (SV, exames lab. e imagiológicos, registos)","Apenas SV","Apenas exames"],correct:1,fb:"Três componentes."});
+add({type:"mc",theme:"proc",sub:"Recolha história",q:"A obtenção de informação:",opts:["Aleatória","Organizada — exige competências comunicacionais e técnicas de entrevista","Apenas técnica","Apenas conversa"],correct:1,fb:"Organizada + comunicação + entrevista."});
+add({type:"mc",theme:"proc",sub:"Princípios",q:"Princípios da história:",opts:["Insistir","Privacidade + confidencialidade + liberdade de não resposta + clima de confiança","Apenas privacidade","Apenas confiança"],correct:1,fb:"Privacidade + confidencialidade + não resposta + confiança."});
+add({type:"mc",theme:"proc",sub:"Princípios",q:"O grau de veracidade:",opts:["É absoluto","As omissões não são necessariamente intencionais","É sempre baixo","Não importa"],correct:1,fb:"Omissões podem não ser intencionais."});
+add({type:"mc",theme:"proc",sub:"Princípios",q:"A recolha pode ser afetada por:",opts:["Apenas linguagem","Esperanças/medos, confiança e reações ao entrevistador, visão de anormalidade, capacidade de observar e descrever","Apenas confiança","Apenas medos"],correct:1,fb:"Quatro fatores listados."});
+add({type:"mc",theme:"proc",sub:"Recolha",q:"Recolher informação sobre:",opts:["Apenas queixa","Queixa principal, doença atual, antecedentes (pessoais/familiares/sociais), revisão dos sistemas","Apenas antecedentes","Apenas exame"],correct:1,fb:"Quatro componentes."});
+add({type:"mc",theme:"proc",sub:"Recolha",q:"Caracterização da doença atual:",opts:["Apenas localização","Localização, qualidade, quantidade, cronologia, cenário, fatores agravantes/alívio, fatores associados","Apenas qualidade","Apenas duração"],correct:1,fb:"Sete elementos."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"Etapas:",opts:["Apenas exploração","Preparação, orientação/acolhimento, exploração, observação, relação de ajuda, conclusão","Apenas conclusão","Apenas orientação"],correct:1,fb:"Seis etapas."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"PREPARAÇÃO:",opts:["Improvisar","Rever dados, definir objetivos, preparar ambiente — fundamenta a qualidade","Apenas chamar utente","Não preparar"],correct:1,fb:"Rever + objetivos + ambiente."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"ORIENTAÇÃO/ACOLHIMENTO:",opts:["Apenas exame","Cumprimentar, explicar objetivo, criar confiança — relação inicial de ajuda","Apenas perguntar","Sem importância"],correct:1,fb:"Cumprimentar + objetivo + confiança."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"EXPLORAÇÃO:",opts:["Só fechadas","Recolher histórico, hábitos, medicação — perguntas abertas E fechadas","Só abertas","Sem perguntas"],correct:1,fb:"Abertas + fechadas."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"OBSERVAÇÃO:",opts:["Apenas escutar","Observar sinais clínicos e linguagem não verbal — complementa sintomas relatados","Apenas examinar","Apenas registar"],correct:1,fb:"Sinais + não verbal."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"RELAÇÃO DE AJUDA:",opts:["Insistência","Escuta ativa, empatia e validação — transforma em intervenção de cuidado","Apenas registo","Confronto"],correct:1,fb:"Escuta + empatia + validação."});
+add({type:"mc",theme:"proc",sub:"Entrevista",q:"CONCLUSÃO:",opts:["Despedir-se","Resumir, confirmar, explicar próximos passos — clareza e colaboração","Apenas terminar","Sem fechamento"],correct:1,fb:"Resumir + confirmar + próximos passos."});
+add({type:"mc",theme:"proc",sub:"Empatia",q:"Frases de escuta ativa:",opts:["Mostram preguiça","Mostram que o enfermeiro está atento e interessado","Confrontam","Distraem"],correct:1,fb:"Atenção e interesse."});
+add({type:"mc",theme:"proc",sub:"Empatia",q:"Frases de validação emocional:",opts:["Negam","Reconhecem os sentimentos do utente","Comparam","Avaliam"],correct:1,fb:"Reconhecem sentimentos."});
+add({type:"mc",theme:"proc",sub:"Comunicação",q:"Evitar:",opts:["Escuta ativa","Interromper, perguntas sugestivas, linguagem técnica excessiva","Olhar para o utente","Empatia"],correct:1,fb:"Não interromper / não sugestivas / não técnicas excessivas."});
+add({type:"mc",theme:"proc",sub:"Comunicação",q:"Observar:",opts:["Apenas verbal","Expressão facial, postura e comportamento","Apenas postura","Apenas comportamento"],correct:1,fb:"Expressão + postura + comportamento."});
+
+// ============================================================
+// 10. SNG - termos e focos
+// ============================================================
+add({type:"mc",theme:"sng",sub:"Focos",q:"INGESTÃO DE ALIMENTOS:",opts:["Apenas glícidos","Processo de suprimento em proteínas, minerais, glícidos e vitaminas lipossolúveis para crescimento, funcionamento e manutenção","Apenas vitaminas","Apenas calorias"],correct:1,fb:"Proteínas + minerais + glícidos + vitaminas lipossolúveis."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"EXCESSO DE PESO:",opts:["5%","Habitualmente 10-20% acima do peso ideal","30%","50%"],correct:1,fb:"10-20% acima."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"OBESIDADE:",opts:["10%","Mais de 20% acima do peso normal","Apenas 5%","Sempre genética"],correct:1,fb:"> 20% acima."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"Excesso de peso/obesidade — predominância:",opts:["Vísceras e tecido subcutâneo","Apenas vísceras","Apenas subcutâneo","Apenas membros"],correct:0,fb:"Vísceras e tecido subcutâneo."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"INANIÇÃO:",opts:["Sobrepeso","Falta de suprimento ou recusa, fome excessiva, perda peso, cãibras, dores ósseas, esteatorreia, anemia, fraqueza, fadiga","Apenas anemia","Apenas fome"],correct:1,fb:"Vários sintomas listados."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"MALNUTRIÇÃO:",opts:["Apenas em jejum","Suprimento desequilibrado / qualidade deficiente, dieta pobre OU compromisso de absorção","Apenas pediátrica","Sempre genética"],correct:1,fb:"Desequilibrado/deficiente; dieta ou absorção."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"CAQUEXIA:",opts:["Sobrepeso","Magreza, perda muscular, falta de forças, mau estado geral; cancro, tuberculose","Edema","Sede"],correct:1,fb:"Magreza extrema, neoplasias, TB."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"ERUCTAÇÃO:",opts:["Vómito","Trazer pequenas porções de alimento, líquido ou ar à boca","Edema","Indigestão"],correct:1,fb:"Pequenas porções à boca."});
+add({type:"mc",theme:"sng",sub:"Focos",q:"VÓMITO:",opts:["Eructação","Expulsar ou trazer de volta alimentos processados ou conteúdo gástrico pelo esófago e boca","Indigestão","Pirose"],correct:1,fb:"Conteúdo gástrico pela boca."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"AEROFAGIA:",opts:["Aglutição","Distensão abdominal com ruídos e gases por excessiva deglutição de ar","Vómito","Edema"],correct:1,fb:"Excessiva deglutição de ar."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"AGLUTIÇÃO:",opts:["Vómito","Incapacidade de deglutir alimentos","Edema","Indigestão"],correct:1,fb:"Não conseguir deglutir."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"ANASARCA:",opts:["Sede","Edema generalizado de todos os tecidos e cavidades","Indigestão","Magreza"],correct:1,fb:"Edema generalizado."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"DISPEPSIA:",opts:["Sangue na boca","Indigestão / digestão flatulenta","Edema","Sede"],correct:1,fb:"Indigestão."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"HEMATEMESE:",opts:["Vómito alimentar","Eliminação de sangue pela boca com esforço de vómito","Edema","Pirose"],correct:1,fb:"Sangue + esforço de vómito."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"PIROSE:",opts:["Indigestão","Sensação de queimadura na extremidade inferior do esófago, geralmente por regurgitação ácida","Sede","Edema"],correct:1,fb:"Queimadura no esófago."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"POLIDIPSIA:",opts:["Fome","Sede anormal e ingestão aumentada de líquidos — DM descompensada","Vómito","Edema"],correct:1,fb:"Sede anormal."});
+add({type:"mc",theme:"sng",sub:"Termos",q:"RISCO DE ASPIRAÇÃO:",opts:["Apenas pulmonar primária","Inalação de substâncias do exterior ou do estômago para as vias aéreas inferiores","Apneia","Cianose"],correct:1,fb:"Inalação para vias aéreas inferiores."});
+add({type:"mc",theme:"sng",sub:"Padrão alimentar",q:"Quando há doentes que não podem ingerir, digerir ou absorver:",opts:["Aguardar recuperação","Encontrar temporariamente ou definitivamente um método especializado","Apenas hidratar","Apenas medicar"],correct:1,fb:"Métodos especializados temporários ou definitivos."});
+
+// ============================================================
+// 11. ALIMENTAÇÃO ENTÉRICA
+// ============================================================
+add({type:"mc",theme:"alim",sub:"Definição",q:"Alimentação entérica:",opts:["EV","Método de alimentar por sonda pessoas que não podem ingerir sólidos, mas absorvem alimentos","Por boca","Apenas hidratação"],correct:1,fb:"Por sonda; absorvem alimentos."});
+add({type:"mc",theme:"alim",sub:"Indicações",q:"Está indicada em:",opts:["Apenas saudáveis","Inconscientes, problemas na boca/esófago ou rejeição alimentar","Apenas oncologia","Apenas pediatria"],correct:1,fb:"Inconscientes, problemas boca/esófago, rejeição."});
+add({type:"mc",theme:"alim",sub:"Formas",q:"Formas de administração:",opts:["Apenas oral","Oral, sonda nasal (NG, ND, NJ), contínua ou intermitente","Apenas EV","Apenas NG"],correct:1,fb:"Oral, NG, ND, NJ; contínua/intermitente."});
+add({type:"mc",theme:"alim",sub:"Objetivos",q:"Objetivos:",opts:["Apenas hidratar","Aporte de nutrientes por via digestiva, manter/restaurar estado nutricional, dar resposta às necessidades nutricionais","Apenas medicar","Apenas exame"],correct:1,fb:"Aporte + manutenção + resposta a necessidades."});
+add({type:"mc",theme:"alim",sub:"Sistema",q:"Tipos de administração:",opts:["Apenas seringa","Por gravidade (câmara gotejamento ou frasco) ou por bomba infusora","Apenas EV","Apenas oral"],correct:1,fb:"Gravidade ou bomba."});
+add({type:"mc",theme:"alim",sub:"Solução",q:"Validade da solução aberta:",opts:["48h","Não usar se aberta há mais de 24h ou conservada fora do frigorífico","72h","Sem prazo"],correct:1,fb:"> 24h aberta ou fora do frio = não usar."});
+add({type:"mc",theme:"alim",sub:"Solução",q:"Antes de utilizar:",opts:["Não agitar","Agitar antes de utilizar","Aquecer ao microondas","Diluir"],correct:1,fb:"Agitar antes."});
+add({type:"mc",theme:"alim",sub:"Lavagem sonda",q:"Lavagem no método CONTÍNUO:",opts:["Apenas no início","8/8h","12/12h","Apenas se obstruir"],correct:1,fb:"Contínuo: 8/8h."});
+add({type:"mc",theme:"alim",sub:"Lavagem sonda",q:"Lavagem no método INTERMITENTE:",opts:["Após cada administração","Apenas no início","12/12h","24/24h"],correct:0,fb:"Intermitente: após cada administração."});
+add({type:"mc",theme:"alim",sub:"Sistema",q:"Mudança do sistema CONTÍNUO:",opts:["8/8h","12/12h","24/24h","Apenas se sujo"],correct:2,fb:"24/24h."});
+add({type:"mc",theme:"alim",sub:"Sistema",q:"Mudança do sistema INTERMITENTE:",opts:["8/8h","Em cada mudança","24/24h","Nunca"],correct:1,fb:"Em cada mudança."});
+add({type:"mc",theme:"alim",sub:"Antes admin",q:"Antes de cada utilização:",opts:["Não verificar","Verificar a posição da sonda — injetar ar e auscultar abdómen","Apenas medir TA","Apenas trocar luvas"],correct:1,fb:"Verificar posição: ar + auscultar."});
+add({type:"mc",theme:"alim",sub:"Resíduo",q:"Resíduo gástrico que justifica suspender:",opts:["Qualquer","Superior à infusão da última hora ou a 150 ml — suspender 1h","Apenas > 500 ml","Apenas se vómito"],correct:1,fb:"> infusão última hora OU > 150 ml: pausa 1h."});
+add({type:"mc",theme:"alim",sub:"Posição",q:"Durante a administração:",opts:["Decúbito dorsal","Fowler ou Semi-Fowler","Trendelenburg","Lateral esquerdo"],correct:1,fb:"Fowler/Semi-Fowler."});
+add({type:"mc",theme:"alim",sub:"Posição",q:"Após administração, manter:",opts:["10 min","Pelo menos 30 minutos em Fowler/Semi-Fowler","1h exata","Não importa"],correct:1,fb:"≥ 30 min após — evita refluxo/aspiração."});
+add({type:"mc",theme:"alim",sub:"Lavagem final",q:"Após a alimentação:",opts:["Não lavar","Lavar a sonda com 30 a 60 ml de água","200 ml soro","Só ar"],correct:1,fb:"30-60 ml de água."});
+add({type:"mc",theme:"alim",sub:"Seringa",q:"Administração por seringa:",opts:["Empurrar com força","Adaptar e injetar suavemente; retirar embolo, encher com solução, deixar escorrer pela altura; preencher quando ¾ vazia","Sempre com bomba","Sempre EV"],correct:1,fb:"Suave; gravidade; reposição quando ¾ vazia."});
+add({type:"mc",theme:"alim",sub:"Seringa",q:"A velocidade na seringa controla-se:",opts:["Pelo embolo","Pela altura a que se coloca a seringa","Pelo tipo de sonda","Não se controla"],correct:1,fb:"Altura da seringa."});
+add({type:"mc",theme:"alim",sub:"Registo",q:"Registar:",opts:["Apenas hora","Tipo de solução, quantidade administrada, eventuais incidentes, tolerância do paciente","Apenas tipo","Apenas tolerância"],correct:1,fb:"Tipo + quantidade + incidentes + tolerância."});
+add({type:"mc",theme:"alim",sub:"Complicações",q:"Complicações MECÂNICAS:",opts:["Diarreia","Obstrução, deslocação, irritação nasofaríngea","Aspiração","Vómito"],correct:1,fb:"Mecânicas: obstrução + deslocação + irritação."});
+add({type:"mc",theme:"alim",sub:"Complicações",q:"Complicações GASTROINTESTINAIS:",opts:["Obstrução","Náusea/vómito, diarreia/obstipação, aspiração","Apenas vómito","Apenas aspiração"],correct:1,fb:"GI: náusea/vómito + diarreia/obstipação + aspiração."});
+
+// ============================================================
+// 12. ENTUBAÇÃO NASOGÁSTRICA (técnica)
+// ============================================================
+add({type:"mc",theme:"sng",sub:"ENG",q:"Entubação NG consiste em:",opts:["Aspiração pulmonar","Introdução de uma sonda no estômago através da narina","Lavagem oral","Sondagem vesical"],correct:1,fb:"Sonda no estômago via narina."});
+add({type:"mc",theme:"sng",sub:"ENG objetivos",q:"Objetivos da ENG (qual NÃO é referido):",opts:["Aliviar náuseas e vómitos","Diminuir distensão abdominal","Aumentar a tensão arterial","Preparar para exames/cirurgia ou medicar"],correct:2,fb:"Não é objetivo. Os objetivos: aliviar náuseas/vómitos, distensão, preparação, medicar/alimentar, remover tóxicos/sangue, aspirar suco para análise."});
+add({type:"mc",theme:"sng",sub:"ENG objetivos",q:"Outro objetivo é:",opts:["Apenas aspirar","Remover substâncias tóxicas ou sangue do estômago e aspirar suco gástrico para análise","Apenas alimentar","Apenas medicar"],correct:1,fb:"Tóxicos/sangue + aspiração para análise."});
+add({type:"mc",theme:"sng",sub:"Aberta/Fechada",q:"Aberta — finalidade:",opts:["Alimentar","Drenar a secreção da cavidade gástrica","Medicar","Aspirar pH"],correct:1,fb:"Aberta = drenar."});
+add({type:"mc",theme:"sng",sub:"Aberta/Fechada",q:"Fechada — finalidade:",opts:["Drenar","Alimentar ou medicar pacientes impossibilitados de deglutir","Aspirar suco","Pesar"],correct:1,fb:"Fechada = alimentar/medicar."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Sobre a privacidade:",opts:["Não importa","Atender à privacidade do utente","Apenas com cortina","Apenas se pedir"],correct:1,fb:"Atender à privacidade."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Técnica:",opts:["Estéril","Limpa","Sem normas","Apenas com luvas"],correct:1,fb:"Técnica limpa."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Selecionar tipo de sonda:",opts:["Aleatoriamente","Conforme objetivo da entubação E estado de saúde","Apenas tamanho","Apenas marca"],correct:1,fb:"Objetivo + estado de saúde."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Imobilizar a sonda:",opts:["Apertando narina","Sem pressionar a narina","Apenas no pescoço","Sem fixar"],correct:1,fb:"Sem pressionar narina."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Trocar a sonda:",opts:["Aleatório","Atendendo ao material, necessidades clínicas e reação do indivíduo","Sem critério","Conforme conveniência"],correct:1,fb:"Material + clínica + reação."});
+add({type:"mc",theme:"sng",sub:"Cuidados",q:"Local de fixação:",opts:["Mesmo sempre","Trocar diariamente o local de fixação à pele e cuidar das narinas","Apenas no nariz","Apenas na camisa"],correct:1,fb:"Trocar diariamente."});
+add({type:"mc",theme:"sng",sub:"Material sonda",q:"Sondas LÁTEX ou POLIURETANO:",opts:["7 dias","15 em 15 dias","1 mês","3 meses"],correct:1,fb:"Látex/poliuretano: 15 em 15 dias."});
+add({type:"mc",theme:"sng",sub:"Material sonda",q:"Sondas SILICONE:",opts:["7 dias","15 dias","1 mês","Três em três meses"],correct:3,fb:"Silicone: 3 em 3 meses."});
+add({type:"mc",theme:"sng",sub:"Complicações",q:"Complicações da entubação prolongada:",opts:["Apenas dor","Úlcera da narina, sinusite, esofagite, úlcera gástrica","Apenas tosse","Apenas perda peso"],correct:1,fb:"Quatro complicações."});
+add({type:"mc",theme:"sng",sub:"Inserção",q:"Se durante a inserção houver tosse, dispneia, cianose ou vapor na sonda:",opts:["Avançar","Remover até à orofaringe e aguardar alguns minutos","Forçar","Cortar a sonda"],correct:1,fb:"Recuar até orofaringe e aguardar."});
+add({type:"mc",theme:"sng",sub:"Material",q:"Material para ENG inclui:",opts:["Apenas sonda","Sonda, lubrificante hidrossolúvel, resguardo, copo de água e palhinha, luvas, tina riniforme, fita pH, tampa, seringa 50-60 cc, adesivo, alfinete, saco coletor, estetoscópio, lenços","Apenas seringa","Apenas estetoscópio"],correct:1,fb:"Lista completa do documento."});
+add({type:"mc",theme:"sng",sub:"Procedimento",q:"Antes de inserir, posicionar:",opts:["Decúbito dorsal","Semi-Fowler ou Fowler, se permitido","Trendelenburg","Lateral esquerdo"],correct:1,fb:"Semi-Fowler ou Fowler."});
+add({type:"mc",theme:"sng",sub:"Procedimento",q:"Identificar narina:",opts:["A primeira","A mais permeável","Aleatório","Direita sempre"],correct:1,fb:"Mais permeável."});
+add({type:"mc",theme:"sng",sub:"Procedimento",q:"Resguardo descartável:",opts:["Sob a cama","Sobre o tórax","No braço","Não usar"],correct:1,fb:"Sobre o tórax."});
+add({type:"mc",theme:"sng",sub:"Procedimento",q:"Tina riniforme e lenços:",opts:["Apenas em UCI","Para utilizar em caso de vómito","Não são necessários","Apenas para idosos"],correct:1,fb:"Em caso de vómito."});
+add({type:"mc",theme:"sng",sub:"Medição",q:"Medir o comprimento:",opts:["Da boca ao umbigo","Ponta do nariz → lóbulo da orelha → apêndice xifoideu, marcando com adesivo","Olho → ombro","Aleatório"],correct:1,fb:"Nariz → orelha → xifoideu."});
+add({type:"mc",theme:"sng",sub:"Inserção",q:"Lubrificante:",opts:["Vaselina oleosa","Hidrossolúvel","Óleo mineral","Cera"],correct:1,fb:"Hidrossolúvel."});
+add({type:"mc",theme:"sng",sub:"Inserção",q:"Direção de inserção:",opts:["Para cima","Em direção à orelha, para trás e para baixo","Para a frente apenas","Aleatório"],correct:1,fb:"Em direção à orelha; trás e baixo."});
+add({type:"mc",theme:"sng",sub:"Inserção",q:"Durante a passagem na orofaringe:",opts:["Hiperextensão","Cabeça em flexão até passar a orofaringe","Lateral","Sem importância"],correct:1,fb:"Flexão até passar; depois anular."});
+add({type:"mc",theme:"sng",sub:"Inserção",q:"Após anular flexão:",opts:["Avançar até estômago","Solicitar movimentos de deglutição ou pequenos golos de água","Forçar","Cortar"],correct:1,fb:"Deglutir ou golos de água."});
+add({type:"mc",theme:"sng",sub:"Confirmação",q:"Confirmar posicionamento:",opts:["Apenas radiografia","Aspirar conteúdo gástrico e verificar pH; ou injetar 15-20 cc de ar e auscultar epigastro","Sem necessidade","Apenas pelo comprimento"],correct:1,fb:"pH ou ar+auscultação."});
+add({type:"mc",theme:"sng",sub:"Confirmação",q:"Volume de ar a injetar:",opts:["5 cc","15 a 20 cc","50 cc","100 cc"],correct:1,fb:"15-20 cc de ar."});
+add({type:"mc",theme:"sng",sub:"Após confirmar",q:"Após posicionamento confirmado:",opts:["Largar","Clampar a extremidade ou adaptar saco coletor / aspirador de baixa pressão","Não fixar","Apenas tampar"],correct:1,fb:"Clampar OU adaptar coletor/aspirador."});
+add({type:"mc",theme:"sng",sub:"Após confirmar",q:"Fixação:",opts:["Apenas no nariz","Adesivo ao nariz E à camisa ou pijama do indivíduo","Apenas pijama","Sem fixar"],correct:1,fb:"Nariz + camisa/pijama."});
+add({type:"mc",theme:"sng",sub:"Registo",q:"Registar inclui:",opts:["Apenas hora","Tipo e tamanho da SNG, data/horário/via, drenagem (qtd, cor, característica, consistência, odor), tolerância","Apenas tipo","Apenas drenagem"],correct:1,fb:"Tipo+tamanho+data+via+drenagem+tolerância."});
+add({type:"mc",theme:"sng",sub:"Remoção",q:"Quando remover, registar:",opts:["Apenas hora","Data, horário, cor, consistência E quantidade da drenagem gástrica","Apenas data","Apenas cor"],correct:1,fb:"Data+horário+cor+consistência+quantidade."});
+
+// ============================================================
+// 13. LAVAGEM GÁSTRICA
+// ============================================================
+add({type:"mc",theme:"lav",sub:"Definição",q:"Lavagem gástrica é:",opts:["Aspiração contínua","Introdução de líquido na cavidade gástrica pela SNG, seguida da sua remoção","Apenas alimentar","Apenas medicar"],correct:1,fb:"Introdução + remoção pela SNG."});
+add({type:"mc",theme:"lav",sub:"Objetivos",q:"Objetivo:",opts:["Apenas alimentar","Retirar conteúdo gástrico nocivo (intoxicação medicamentosa/alimentar, retenção)","Apenas medicar","Apenas estancar"],correct:1,fb:"Conteúdo nocivo."});
+add({type:"mc",theme:"lav",sub:"Objetivos",q:"Outro objetivo:",opts:["Apenas alimentar","Preparar a cavidade gástrica para exames ou cirurgia","Apenas medicar","Apenas hidratar"],correct:1,fb:"Preparar para exames/cirurgia."});
+add({type:"mc",theme:"lav",sub:"Objetivos",q:"Estancar hemorragia gástrica/esofágica:",opts:["Solução quente","Solução gelada","Solução temperatura ambiente","Soro hipertónico"],correct:1,fb:"Solução gelada (vasoconstrição)."});
+
+// ============================================================
+// CASOS CLÍNICOS
+// ============================================================
+add({type:"mc",theme:"sv",sub:"Caso",case:"Sr. F., 72 anos, internado por pneumonia. Vai realizar transfusão de concentrado eritrocitário em 30 minutos.",q:"Quando avaliar SV?",opts:["Apenas após","Antes, durante e após","Apenas antes","Não avaliar"],correct:1,fb:"Antes, durante E após transfusão."});
+add({type:"mc",theme:"ta",sub:"Caso",case:"Sra. M., 58 anos, primeira medição. Mastectomia esquerda há 3 anos.",q:"Como abordar?",opts:["Apenas esquerdo","Avaliar em ambos é recomendado, evitando o lado mastectomizado (medir só o direito)","Apenas direito sem outras considerações","Adiar"],correct:1,fb:"1ª medição em ambos, evitando mastectomizado."});
+add({type:"mc",theme:"ta",sub:"Caso",case:"Mediu TA num utente sentado, sem apoiar o braço.",q:"Que efeito esperar?",opts:["TA correta","Exercício isométrico → PA até 10% maior e FC ↑","TA mais baixa","Sem efeito"],correct:1,fb:"Sem apoio = PA ↑ até 10%."});
+add({type:"mc",theme:"ta",sub:"Caso",case:"Mediu TA com braçadeira estreita E braço abaixo do nível do coração. Obteve 180/100.",q:"Como interpretar?",opts:["Exato","Provavelmente sobrestimado (falsamente alto)","Provavelmente subestimado","Aleatório"],correct:1,fb:"Estreita + abaixo = falsos altos."});
+add({type:"mc",theme:"glic",sub:"Caso",case:"Sr. P., diabético, sudorético, tremores, confusão. Glicemia 48 mg/dL. Consciente.",q:"Intervenção:",opts:["Insulina","Glucagon IM","Glicose oral rápida","Glicose EV"],correct:2,fb:"Hipo + consciente = oral rápida."});
+add({type:"mc",theme:"glic",sub:"Caso",case:"Mesmo Sr. P., agora encontrado inconsciente.",q:"Intervenção:",opts:["Glicose oral","Glucagon ou glicose EV","Aguardar","Insulina"],correct:1,fb:"Inconsciente = glucagon ou EV."});
+add({type:"mc",theme:"alim",sub:"Caso",case:"Vai administrar alimentação. Aspira 200 ml de resíduo. Última hora administrou 100 ml.",q:"Decisão:",opts:["Administrar","Suspender 1h e verificar de novo","Aumentar dose","Mudar de sonda"],correct:1,fb:"> 150 ml E > infusão da última hora: pausa 1h."});
+add({type:"mc",theme:"resp",sub:"Caso",case:"Sra. C., 84 anos, fim de vida. Inspirações lentas e superficiais que aumentam progressivamente, depois diminuem até apneia, repetindo o ciclo.",q:"Padrão:",opts:["Kussmaul","Cheyne-Stokes","Biot","Hiperventilação"],correct:1,fb:"Cheyne-Stokes."});
+add({type:"mc",theme:"hig",sub:"Caso",case:"Sra. L., diabética, com má perfusão dos pés.",q:"Atenção redobrada:",opts:["Tesoura comum sem cuidado","Avaliação rigorosa de unhas/pele, secar entre dedos, hidratar calcanhares","Imergir em água quente","Apenas lavar superficial"],correct:1,fb:"DM + DVP = avaliação rigorosa."});
+add({type:"mc",theme:"sng",sub:"Caso",case:"Durante a inserção da SNG, o utente começa a tossir e fica cianótico, com vapor visível na sonda.",q:"Que fazer?",opts:["Avançar mais depressa","Remover até à orofaringe e aguardar alguns minutos","Forçar","Cortar a sonda"],correct:1,fb:"Sinais de via aérea = recuar."});
+add({type:"mc",theme:"dor",sub:"Caso",case:"Aplicou a escala numérica numa primeira avaliação. No turno seguinte, vai reavaliar a mesma utente.",q:"Que escala usar?",opts:["Mudar para faces","A mesma — numérica","Visual analógica","Qualitativa"],correct:1,fb:"Mesma escala para o mesmo doente."});
+add({type:"mc",theme:"hig",sub:"Caso",case:"Está a fazer a higiene a um utente com cateter IV no MS direito, em decúbito dorsal.",q:"Antes de começar:",opts:["Não verificar","Verificar entubações/cateteres para prevenir remoção inadvertida","Remover cateter","Não importa"],correct:1,fb:"Verificar tubos/cateteres."});
+
+// ============================================================
+// VERDADEIRO/FALSO mistos
+// ============================================================
+add({type:"tf",theme:"sv",sub:"V/F",q:"V/F: Os SV são a última parte do exame físico.",opts:["Verdadeiro","Falso"],correct:1,fb:"Falso. São a primeira parte."});
+add({type:"tf",theme:"resp",sub:"V/F",q:"V/F: Polipneia significa cessação da respiração.",opts:["V","F"],correct:1,fb:"Falso. Polipneia = ↑ amplitude. Apneia = cessação."});
+add({type:"tf",theme:"ta",sub:"V/F",q:"V/F: Braço acima do coração subestima a TA.",opts:["V","F"],correct:0,fb:"Verdadeiro. Acima = subestima."});
+add({type:"tf",theme:"ta",sub:"V/F",q:"V/F: Braçadeira larga dá falsos valores altos.",opts:["V","F"],correct:1,fb:"Falso. Larga = falsos baixos. Estreita = altos."});
+add({type:"tf",theme:"dor",sub:"V/F",q:"V/F: A intensidade da dor pode ser inferida pelo enfermeiro com base no exame físico.",opts:["V","F"],correct:1,fb:"Falso. É sempre referida pelo utente."});
+add({type:"tf",theme:"glic",sub:"V/F",q:"V/F: Usa-se a primeira gota para a tira reagente.",opts:["V","F"],correct:1,fb:"Falso. Limpa-se a 1ª; usa-se a 2ª."});
+add({type:"tf",theme:"glic",sub:"V/F",q:"V/F: A lanceta pode ser reutilizada se for desinfetada.",opts:["V","F"],correct:1,fb:"Falso. Uso único."});
+add({type:"tf",theme:"hig",sub:"V/F",q:"V/F: Os olhos lavam-se do canto interno para o externo.",opts:["V","F"],correct:1,fb:"Falso. Externo → interno."});
+add({type:"tf",theme:"hig",sub:"V/F",q:"V/F: Na higiene genital deve-se trocar água E luvas.",opts:["V","F"],correct:0,fb:"Verdadeiro."});
+add({type:"tf",theme:"sng",sub:"V/F",q:"V/F: SNG aberta serve para alimentar.",opts:["V","F"],correct:1,fb:"Falso. Aberta = drenar; fechada = alimentar/medicar."});
+add({type:"tf",theme:"alim",sub:"V/F",q:"V/F: Sondas de silicone substituem-se a cada 15 dias.",opts:["V","F"],correct:1,fb:"Falso. Silicone: 3/3 meses. Látex/poliuretano: 15/15 dias."});
+add({type:"tf",theme:"alim",sub:"V/F",q:"V/F: Após alimentação, manter o utente em Fowler/Semi-Fowler ≥ 30 min.",opts:["V","F"],correct:0,fb:"Verdadeiro."});
+add({type:"tf",theme:"lav",sub:"V/F",q:"V/F: Para estancar hemorragia gástrica usa-se solução quente.",opts:["V","F"],correct:1,fb:"Falso. Solução gelada (vasoconstrição)."});
+add({type:"tf",theme:"proc",sub:"V/F",q:"V/F: Na entrevista deve-se usar linguagem técnica para precisão.",opts:["V","F"],correct:1,fb:"Falso. Evitar linguagem técnica excessiva."});
+
+// ============================================================
+// DESENVOLVIMENTO
+// ============================================================
+add({type:"dev",theme:"sv",sub:"Dev",q:"Indica todos os momentos em que se devem avaliar os sinais vitais.",answer:[
+  "Quando o utente é admitido numa instituição de saúde.",
+  "No hospital, conforme prescrição médica ou normas hospitalares.",
+  "Em visitas domiciliares ao utente.",
+  "Antes e depois de procedimento cirúrgico ou diagnóstico invasivo.",
+  "Antes, durante e após transfusão de produtos sanguíneos, administração de medicamentos com efeitos CV, respiratórios ou de controlo de temperatura.",
+  "Quando o estado geral se altera.",
+  "Antes e após intervenções de enfermagem que tenham influência num dos SV.",
+  "Quando o utente refere sintomas indeterminados de perturbação física."
+]});
+add({type:"dev",theme:"temp",sub:"Dev",q:"Diferencia hipotermia de hipertermia, indicando sinais e causas.",answer:[
+  "Hipotermia: diminuição da temperatura. Pele fria, pálida e seca, tremores, preenchimento capilar lento, taquicardia, leitos ungueais cianosados, hipertensão, piloereção. Causas: exposição prolongada ao frio, disfunção do SNC ou sistema endócrino, indução terapêutica.",
+  "Hipertermia: aumento da temperatura. Pele quente e seca, sonolência, cefaleia. Causas: disfunção do SNC ou endócrino, choque pelo calor, indução terapêutica."
+]});
+add({type:"dev",theme:"pulso",sub:"Dev",q:"Indica e caracteriza as três características do pulso e cinco locais de avaliação.",answer:[
+  "Frequência: bpm. Taquicardia >100; Bradicardia <60.",
+  "Ritmo: rítmico (intervalos iguais) ou arrítmico (desiguais e inconstantes).",
+  "Amplitude: volume na contração ventricular — forte (↑ejeção), fraco/débil/fino/filiforme (↓ejeção), normal ou ausente.",
+  "Locais: radial (preferencial), temporal (latentes/crianças), carotídeo (emergência), apical (latentes < 2 anos e arritmias), braquial (TA MS), cubital (mão), poplíteo (TA MI), femoral (emergência), tibial posterior e dorso do pé (pé)."
+]});
+add({type:"dev",theme:"resp",sub:"Dev",q:"Define ventilação, difusão e perfusão. Indica seis fatores que influenciam a respiração.",answer:[
+  "Ventilação: movimento mecânico dos gases para dentro/fora dos pulmões.",
+  "Difusão: movimento dos gases entre alvéolos e GV.",
+  "Perfusão: distribuição dos GV pelos capilares pulmonares.",
+  "Exercício: ↑ ritmo e profundidade.",
+  "Dor aguda: altera frequência e ritmo, torna-a superficial.",
+  "Ansiedade: ↑ frequência e profundidade (estimulação simpática).",
+  "Tabagismo crónico: ↑ frequência em repouso quando não está a fumar.",
+  "Posição corporal: ereta favorece; inclinada/curvada/deitada prejudica.",
+  "Medicamentos: analgésicos/narcóticos/anestésicos/sedativos deprimem; anfetaminas/cocaína aumentam; broncodilatadores diminuem.",
+  "Lesão neurológica: tronco cerebral inibe centro respiratório.",
+  "Hemoglobina: anemia ↑ frequência; altitude ↑ frequência e profundidade."
+]});
+add({type:"dev",theme:"resp",sub:"Dev",q:"Descreve as alterações do padrão respiratório.",answer:[
+  "Bradipneia: regular mas < 12 c/min.",
+  "Taquipneia: regular mas > 20 c/min.",
+  "Polipneia: amplitude aumentada (típica do exercício).",
+  "Apneia: cessação da respiração; prolongada → paragem respiratória.",
+  "Hiperventilação: frequência E amplitude aumentadas.",
+  "Hipoventilação: frequência baixa, amplitude pode estar diminuída.",
+  "Cheyne-Stokes: apneia e hiperventilação alternadas, padrão crescendo-decrescendo.",
+  "Kussmaul: ciclos profundos, frequência aumentada, regulares.",
+  "Biot: 2-3 ciclos superficiais seguidos de apneia irregular."
+]});
+add({type:"dev",theme:"ta",sub:"Dev",q:"Descreve as condições ideais de medição da TA.",answer:[
+  "Utente: relaxado, sentado, costas apoiadas, pernas descruzadas, sala silenciosa, temperatura confortável; ≥ 5 min descanso; sem falar antes nem durante.",
+  "Apoio: braço apoiado, preferencialmente em mesa (sem apoio = isométrico, ↑ PA até 10%).",
+  "Posição: ao nível do coração (4º-5º EIC); abaixo sobrestima (até 10 mmHg sentado/pé, 5 mmHg decúbito); acima subestima.",
+  "Seleção: na 1ª medição avaliar ambos os braços para excluir doença oclusiva; usar o de TA mais elevada se diferença consistente > 10 sist e/ou > 5 diast. Evitar mastectomia, perfusão, fístula AV.",
+  "Braçadeira: dimensões adequadas, largura ~40% da circunferência (entre olécraneo e acrómio), zona central sobre artéria braquial.",
+  "Reportar sempre que não seja possível assegurar condições ótimas."
+]});
+add({type:"dev",theme:"ta",sub:"Dev",q:"Enumera erros que dão falsos valores ALTOS, BAIXOS ou INSTÁVEIS.",answer:[
+  "Falsos altos: braçadeira muito estreita; desinsuflar muito devagar; braço abaixo do nível do coração; parar e voltar a insuflar; não esperar 30s antes de repetir.",
+  "Falsos baixos: braçadeira muito larga; desinsuflar muito depressa; braço acima do nível; mal apertada; nível de insuflação muito baixo.",
+  "Falsos instáveis: manómetro mal calibrado, equipamento deficiente, mercúrio fora do nível dos olhos, técnica rápida."
+]});
+add({type:"dev",theme:"dor",sub:"Dev",q:"Indica os 7 tipos de dor e as 4 escalas de avaliação.",answer:[
+  "Aguda: súbita, dano tecidular, < 6 meses.",
+  "Crónica: > 6 meses sem se curar.",
+  "Somática: ossos e músculos.",
+  "Visceral: vísceras (órgãos abdominais ou outras cavidades).",
+  "Simpática: associada ao SN simpático.",
+  "Fantasma: sentida em parte amputada.",
+  "Irradiada: parece emanar de um local quando a fonte é distante.",
+  "Visual analógica: linha 10 cm com 'Sem dor' e 'Dor máxima'; mede-se a distância do 0 ao traço.",
+  "Numérica: régua 11 partes (0-10).",
+  "Qualitativa: adjetivos (Sem dor, Ligeira, Moderada, Intensa, Máxima).",
+  "Faces: mímica facial — felicidade='Sem dor', tristeza máxima='Dor máxima'."
+]});
+add({type:"dev",theme:"dor",sub:"Dev",q:"Indica as regras de aplicação das escalas da dor.",answer:[
+  "A intensidade é sempre referida pelo utente.",
+  "Refere-se ao momento da colheita.",
+  "Aplicáveis a doentes conscientes e colaborantes, com idade > 3 anos.",
+  "A escala utilizada para um determinado doente deve ser sempre a mesma.",
+  "Exige linguagem comum entre profissional e doente: padronização e ensino prévio.",
+  "O profissional deve assegurar-se que o utente compreende o significado e utilização da escala."
+]});
+add({type:"dev",theme:"glic",sub:"Dev",q:"Descreve o procedimento completo da glicemia capilar.",answer:[
+  "Preparação e segurança: higienizar mãos, identificar utente, explicar procedimento, calçar luvas, ter material preparado (glicosímetro calibrado, tiras compatíveis, lanceta uso único, compressas, álcool 70%, contentor cortoperfurantes).",
+  "Selecionar local: lateral da polpa do dedo. Desinfetar e DEIXAR SECAR completamente.",
+  "Execução: realizar punção com lanceta estéril; limpar 1ª gota com compressa (evita fluido intersticial); usar 2ª gota encostando à tira; manter glicosímetro estável.",
+  "Conclusão: compressa seca até hemostase; descartar lanceta IMEDIATAMENTE no contentor; descartar restante material; registar valor + hora + condições + intervenções e resposta."
+]});
+add({type:"dev",theme:"glic",sub:"Dev",q:"Indica os valores de referência e a atuação na hipoglicemia e hiperglicemia.",answer:[
+  "Jejum: 70-99 mg/dL.",
+  "Pré-prandial: 80-130 mg/dL.",
+  "Pós-prandial: < 180 mg/dL.",
+  "Validar sempre valores anómalos, repetindo a técnica ou confirmando analiticamente.",
+  "Hipoglicemia consciente: glicose oral rápida.",
+  "Hipoglicemia inconsciente: glucagon ou glicose EV.",
+  "Hiperglicemia: avaliar terapêutica em curso, administrar insulina conforme prescrição médica, garantir hidratação."
+]});
+add({type:"dev",theme:"glic",sub:"Dev",q:"Descreve os benefícios, limitações e protocolo de segurança dos sistemas de monitorização contínua da glicose (CGM).",answer:[
+  "Benefícios: monitorização em tempo real; redução drástica das picadas; otimiza controlo glicémico; identifica padrões ocultos noturnos e pós-prandiais; alertas precoces; redução efetiva da HbA1c; proteção contínua durante o sono; devolve autonomia.",
+  "Paradoxo do atraso: sensor lê líquido intersticial; desfasamento de 5 a 15 min em variações rápidas.",
+  "Limitações dermatológicas: irritações ou alergias ao adesivo.",
+  "Limitações logísticas: substituição periódica do sensor exige técnica correta.",
+  "Limitações económicas: custo elevado de manutenção e consumíveis.",
+  "Confirmação por picada digital obrigatória: sintomas discordantes, valores extremos, hipoglicemias suspeitas, calibração."
+]});
+add({type:"dev",theme:"hig",sub:"Dev",q:"Distingue ajuda parcial e ajuda total e descreve a sequência de banho no leito.",answer:[
+  "Ajuda parcial (Norma 3.1.1.1): utente lava até 54%. Enfermeiro supervisiona, prepara material e assiste em zonas de difícil acesso. Foco: instrução e encorajamento à independência.",
+  "Ajuda total (Norma 3.1.1.2): dependência total. Enfermeiro executa 100%, geralmente com apoio. Foco: integridade pele, retorno venoso, mobilização passiva.",
+  "Sequência: cabeça → MS → MI → dorso e nádegas → genital. Sempre do mais limpo para o mais sujo.",
+  "Olhos: externo→interno, toalhete diferente por olho.",
+  "Boca em dependentes: cabeça lateral (previne aspiração).",
+  "MS: distal→proximal, movimentos circulantes; secar zonas de maceração.",
+  "MI/pés: pés diretos na bacia; secar entre dedos; massajar calcanhares.",
+  "Dorso: decúbito lateral; lavar pescoço→nádegas; hidratar.",
+  "Genital: trocar água e luvas. Feminino: único descendente, toalhete diferente. Masculino: retrair prepúcio, limpar centro→periferia (glande→base), reposicionar."
+]});
+add({type:"dev",theme:"proc",sub:"Dev",q:"Descreve as etapas da entrevista e os princípios da recolha da história.",answer:[
+  "Preparação: rever dados, definir objetivos, preparar ambiente — fundamenta a qualidade.",
+  "Orientação/acolhimento: cumprimentar, explicar objetivo, criar confiança — relação inicial.",
+  "Exploração: histórico, hábitos, medicação — perguntas abertas e fechadas.",
+  "Observação: sinais clínicos e linguagem não verbal — complementa o relatado.",
+  "Relação de ajuda: escuta ativa, empatia, validação — transforma em intervenção.",
+  "Conclusão: resumir, confirmar, próximos passos — clareza e colaboração.",
+  "Princípios: privacidade, confidencialidade, liberdade de não resposta, clima de confiança.",
+  "Recolha: queixa principal, doença atual (localização, qualidade, quantidade, cronologia, cenário, fatores agravantes/alívio, fatores associados), antecedentes pessoais/familiares/sociais, revisão dos sistemas.",
+  "Comunicação: evitar interromper, perguntas sugestivas, linguagem técnica excessiva; observar expressão, postura e comportamento."
+]});
+add({type:"dev",theme:"sng",sub:"Dev",q:"Define 8 termos técnicos relacionados com alterações do padrão alimentar.",answer:[
+  "Aerofagia: distensão abdominal com ruídos e gases por excessiva deglutição de ar.",
+  "Aglutição: incapacidade de deglutir alimentos.",
+  "Anasarca: edema generalizado de todos os tecidos e cavidades.",
+  "Dispepsia: indigestão / digestão flatulenta.",
+  "Hematemese: eliminação de sangue pela boca com esforço de vómito.",
+  "Pirose: queimadura na extremidade inferior do esófago, por regurgitação ácida.",
+  "Polidipsia: sede anormal e ingestão aumentada de líquidos — DM descompensada.",
+  "Risco de aspiração: inalação de substâncias do exterior ou do estômago para vias aéreas inferiores.",
+  "Eructação: trazer pequenas porções de alimento, líquido ou ar à boca.",
+  "Caquexia: magreza, perda muscular, falta de forças, mau estado geral; cancro/TB."
+]});
+add({type:"dev",theme:"sng",sub:"Dev",q:"Indica os objetivos da entubação NG, as diferenças entre aberta e fechada, e os intervalos de troca da sonda.",answer:[
+  "Objetivos: aliviar náuseas e vómitos; diminuir distensão abdominal; preparar para exames complementares ou cirurgia; administrar medicamentos e/ou alimentação; remover substâncias tóxicas ou sangue do estômago; aspirar suco gástrico para análise.",
+  "Aberta: drenar a secreção da cavidade gástrica (descompressão).",
+  "Fechada: alimentar ou medicar pacientes impossibilitados de deglutir.",
+  "Intervalos: látex ou poliuretano — 15 em 15 dias; silicone — 3 em 3 meses.",
+  "Trocar diariamente o local de fixação à pele; cuidar das narinas (limpeza/lubrificação)."
+]});
+add({type:"dev",theme:"sng",sub:"Dev",q:"Descreve o procedimento de inserção da SNG, do material à confirmação.",answer:[
+  "Material: sonda, lubrificante hidrossolúvel, resguardo, copo de água e palhinha, luvas, tina riniforme, fita pH, tampa, seringa 50-60 cc adaptável à sonda, adesivo, alfinete de segurança, saco coletor, estetoscópio, lenços.",
+  "Preparação: providenciar material; lavar mãos; instruir o indivíduo; posicionar Semi-Fowler/Fowler; limpar nariz e identificar narina mais permeável; tina riniforme e lenços para vómito; resguardo descartável sobre o tórax; calçar luvas.",
+  "Medição: ponta do nariz → lóbulo da orelha → apêndice xifoideu; marcar com adesivo.",
+  "Inserção: lubrificante hidrossolúvel; inserir suavemente em direção à orelha, para trás e para baixo; cabeça em flexão até passar a orofaringe; anular flexão e pedir movimentos de deglutição ou pequenos golos de água.",
+  "Sinais de via aérea (tosse, dispneia, cianose, vapor na sonda): recuar até orofaringe e aguardar minutos.",
+  "Confirmação: aspirar conteúdo gástrico e verificar pH; OU injetar 15-20 cc de ar e auscultar epigastro à procura de ruídos hidroaéreos.",
+  "Finalização: clampar OU adaptar saco coletor / aspirador de baixa pressão; limpar pele do nariz; fixar com adesivo ao nariz e à camisa/pijama; lavar boca e nariz se necessário; posicionar utente; remover luvas; lavar mãos; registar."
+]});
+add({type:"dev",theme:"alim",sub:"Dev",q:"Descreve as regras de administração da alimentação por sonda.",answer:[
+  "Validade: não usar se aberta há mais de 24h ou conservada fora do frigorífico; agitar antes.",
+  "Lavagem: 8/8h no método contínuo; após cada administração no intermitente; lavagem final com 30 a 60 ml de água.",
+  "Sistema: mudar 24/24h no contínuo; em cada mudança no intermitente.",
+  "Antes da utilização: verificar a posição da sonda — injetar ar e auscultar abdómen.",
+  "Resíduo gástrico: se > infusão da última hora ou > 150 ml, suspender 1h e verificar de novo.",
+  "Posição: Fowler/Semi-Fowler durante e ≥ 30 min após.",
+  "Por seringa: adaptar e injetar suavemente OU retirar embolo, encher com solução, deixar escorrer pela altura; preencher quando ¾ vazia.",
+  "Registar: tipo de solução, quantidade, eventuais incidentes, tolerância."
+]});
+add({type:"dev",theme:"alim",sub:"Dev",q:"Indica as complicações mecânicas e gastrointestinais da alimentação por sonda.",answer:[
+  "Mecânicas: obstrução da sonda, deslocação da sonda, irritação nasofaríngea.",
+  "Gastrointestinais: náusea/vómito, diarreia/obstipação, aspiração."
+]});
+add({type:"dev",theme:"lav",sub:"Dev",q:"Define lavagem gástrica e indica os seus objetivos.",answer:[
+  "Lavagem gástrica: introdução, por meio da SNG, de líquido na cavidade gástrica, seguida da sua remoção.",
+  "Objetivos: retirar o conteúdo gástrico nocivo (intoxicação medicamentosa ou alimentar; retenção de alimentos não digeridos); preparar a cavidade gástrica para exames ou cirurgia; estancar a hemorragia gástrica ou esofágica — realizada com solução gelada (vasoconstrição)."
+]});
+add({type:"dev",theme:"hig",sub:"Dev",q:"Descreve como mudar a cama com o utente ocupado.",answer:[
+  "Posicionar o utente em decúbito lateral.",
+  "Enrolar o lençol sujo até ao centro da cama, encostando-o às costas do utente.",
+  "Colocar o lençol limpo na metade vazia da cama e entalar rigorosamente (fazer o canto).",
+  "Virar o utente sobre os lençóis para o lado limpo.",
+  "Remover a roupa suja pelo lado oposto e esticar o resto do lençol limpo, eliminando todas as rugas.",
+  "Lençol debaixo: esticado e sem rugas. Se houver lesões nos pés, libertar o lençol ou usar rolo.",
+  "Roupa suja: descartar diretamente no carro aos pés da cama; separar limpa de suja; não levantar pó."
+]});
+
+// === END Q ===
+
+Q.forEach((q, i) => q._id = i);
+
+const filtersDiv = document.getElementById('filters');
+let activeFilter = 'all';
+let errorMode = false;
+let showSections = true;
+
+function buildFilters() {
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn active';
+  allBtn.textContent = `Todas (${Q.length})`;
+  allBtn.dataset.theme = 'all';
+  allBtn.onclick = () => setFilter('all');
+  filtersDiv.appendChild(allBtn);
+
+  Object.entries(themes).forEach(([key, label]) => {
+    const count = Q.filter(q => q.theme === key).length;
+    if (count === 0) return;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.theme = key;
+    btn.textContent = `${label} (${count})`;
+    btn.onclick = () => setFilter(key);
+    filtersDiv.appendChild(btn);
+  });
+}
+
+function setFilter(theme) {
+  activeFilter = theme;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.theme === theme);
+  });
+  render();
+}
+
+function toggleErrorMode() {
+  errorMode = !errorMode;
+  document.getElementById('errBtn').classList.toggle('active', errorMode);
+  render();
+}
+
+function toggleSections() {
+  showSections = !showSections;
+  document.getElementById('secBtn').classList.toggle('active', !showSections);
+  render();
+}
+
+const state = {};
+
+function render() {
+  const container = document.getElementById('questions');
+  container.innerHTML = '';
+  let filtered = activeFilter === 'all' ? Q : Q.filter(q => q.theme === activeFilter);
+  if (errorMode) {
+    filtered = filtered.filter(q => (q.type === 'mc' || q.type === 'tf' || q.type === 'case') && state[q._id] && state[q._id].answered && !state[q._id].correct);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">' + (errorMode ? 'Sem perguntas erradas neste filtro 🎉' : 'Nenhuma pergunta neste tema.') + '</div>';
+    updateStats();
+    return;
+  }
+
+  let lastSubKey = null;
+  filtered.forEach((q, displayIdx) => {
+    const subKey = q.theme + '|' + (q.sub || '');
+    if (showSections && subKey !== lastSubKey && activeFilter !== 'all') {
+      const sectionTitle = document.createElement('div');
+      sectionTitle.className = 'section-title';
+      sectionTitle.textContent = q.sub || '';
+      container.appendChild(sectionTitle);
+      lastSubKey = subKey;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    const num = displayIdx + 1;
+    const themeLabel = themes[q.theme];
+    const s = state[q._id] || {};
+    const caseHtml = q.case ? `<div class="case-context">${q.case}</div>` : '';
+
+    let tagClass = 'tag-mc', tagText = 'MC';
+    if (q.type === 'tf') { tagClass = 'tag-tf'; tagText = 'V/F'; }
+    else if (q.type === 'dev') { tagClass = 'tag-dev'; tagText = 'Dev'; }
+    else if (q.case) { tagClass = 'tag-case'; tagText = 'Caso'; }
+
+    if (q.type === 'mc' || q.type === 'tf') {
+      card.innerHTML = `
+        <div class="q-header">
+          <span class="q-tag ${tagClass}">${tagText}</span>
+          <span class="tag-theme">${themeLabel}</span>
+          ${q.sub ? `<span class="tag-sub">· ${q.sub}</span>` : ''}
+        </div>
+        ${caseHtml}
+        <p class="q-text">${num}. ${q.q}</p>
+        <div id="opts-${q._id}"></div>
+        <div class="feedback" id="fb-${q._id}"></div>
+      `;
+      container.appendChild(card);
+
+      const optsDiv = document.getElementById(`opts-${q._id}`);
+      q.opts.forEach((opt, j) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.textContent = opt;
+        btn.onclick = () => handleMC(q._id, j);
+        if (s.answered) {
+          btn.disabled = true;
+          if (j === q.correct) btn.classList.add('correct');
+          if (j === s.selected && j !== q.correct) btn.classList.add('wrong');
+        }
+        optsDiv.appendChild(btn);
+      });
+
+      if (s.answered) {
+        const fb = document.getElementById(`fb-${q._id}`);
+        fb.className = 'feedback show ' + (s.correct ? 'ok' : 'no');
+        fb.textContent = (s.correct ? '' : 'Não. ') + q.fb;
+      }
+    } else {
+      card.innerHTML = `
+        <div class="q-header">
+          <span class="q-tag tag-dev">Desenvolvimento</span>
+          <span class="tag-theme">${themeLabel}</span>
+          ${q.sub ? `<span class="tag-sub">· ${q.sub}</span>` : ''}
+        </div>
+        <p class="q-text">${num}. ${q.q}</p>
+        <textarea class="dev-textarea" placeholder="Escreve a tua resposta..."></textarea>
+        <button class="dev-toggle" onclick="toggleAnswer(${q._id})">${s.devOpen ? 'Esconder resposta' : 'Ver resposta'}</button>
+        <div class="dev-answer ${s.devOpen ? 'show' : ''}" id="ans-${q._id}">
+          <strong>Resposta:</strong>
+          <ul>${q.answer.map(a => `<li>${a}</li>`).join('')}</ul>
+        </div>
+      `;
+      container.appendChild(card);
+    }
+  });
+
+  updateStats();
+}
+
+function handleMC(qId, optIdx) {
+  if (state[qId] && state[qId].answered) return;
+  const q = Q.find(x => x._id === qId);
+  state[qId] = { answered: true, selected: optIdx, correct: optIdx === q.correct };
+  render();
+}
+
+function toggleAnswer(qId) {
+  state[qId] = state[qId] || {};
+  state[qId].devOpen = !state[qId].devOpen;
+  render();
+}
+
+function updateStats() {
+  const mcQs = Q.filter(q => q.type === 'mc' || q.type === 'tf');
+  const total = mcQs.length;
+  const answered = mcQs.filter(q => state[q._id] && state[q._id].answered).length;
+  const score = mcQs.filter(q => state[q._id] && state[q._id].correct).length;
+  document.getElementById('total').textContent = total;
+  document.getElementById('score').textContent = score;
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('rate').textContent = answered === 0 ? '—' : Math.round(score / answered * 100) + '%';
+  document.getElementById('progress').style.width = (answered / total * 100) + '%';
+}
+
+function resetAll() {
+  for (const k in state) delete state[k];
+  render();
+}
+
+buildFilters();
+render();
+</script>
